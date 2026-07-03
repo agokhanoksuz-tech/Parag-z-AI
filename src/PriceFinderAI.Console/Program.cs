@@ -6,9 +6,9 @@ Console.OutputEncoding = System.Text.Encoding.UTF8;
 
 IReadOnlyList<IPriceProvider> providers =
 [
-    new FakePriceProvider()
+    new FakePriceProvider(),
+    new WebSearchPriceProvider()
 ];
-
 var aggregator = new PriceAggregatorService(providers);
 
 Console.WriteLine("=== Paragöz AI ===");
