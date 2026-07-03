@@ -33,8 +33,9 @@ if (string.IsNullOrWhiteSpace(productName))
     return;
 }
 
+var matcher = new ProductMatchingService();
 var results = await aggregator.SearchAllAsync(productName);
-
+results = matcher.FilterRelevantResults(productName, results);
 Console.WriteLine("\n--- Sonuçlar ---");
 
 foreach (var item in results)
