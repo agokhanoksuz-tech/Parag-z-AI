@@ -17,8 +17,8 @@ Console.WriteLine(string.IsNullOrWhiteSpace(apiKey)
     : "Search API Key: Yüklendi");
 IReadOnlyList<IPriceProvider> providers =
 [
-    new FakePriceProvider(),
-    new WebSearchPriceProvider(apiKey, baseUrl)
+    new WebSearchPriceProvider(apiKey, baseUrl),
+    new TeknosaProvider()
 ];
 var aggregator = new PriceAggregatorService(providers);
 
