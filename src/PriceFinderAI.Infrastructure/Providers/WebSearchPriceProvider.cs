@@ -6,31 +6,50 @@ namespace PriceFinderAI.Infrastructure.Providers;
 public sealed class WebSearchPriceProvider : IPriceProvider
 {
     private readonly HttpClient _httpClient = new();
+    private readonly string? _apiKey;
+    private readonly string? _baseUrl;
 
-    public string Name => "Search API Provider";
+    public WebSearchPriceProvider(string? apiKey, string? baseUrl)
+    {
+        _apiKey = apiKey;
+        _baseUrl = baseUrl;
+    }
+
+    public string Name => "Web Search Provider";
 
     public async Task<IReadOnlyList<PriceResult>> SearchAsync(
         string productName,
         CancellationToken cancellationToken = default)
     {
-        // İlk test: internete gerçekten çıkabiliyor muyuz?
+        if (string.IsNullOrWhiteSpace(_apiKey))
+        {
+            return
+            [
+                new(
+                    "Web Search Hazır",
+                    productName,
+                    0,
+                    0,
+                    0,
+                    "API key henüz eklenmedi")
+            ];
+        }
+
         var response = await _httpClient.GetAsync(
-            "https://example.com",
+            _baseUrl,
             cancellationToken);
 
         response.EnsureSuccessStatusCode();
 
-        IReadOnlyList<PriceResult> results =
+        return
         [
             new(
-                "HTTP Test Başarılı",
+                "Web Search API Bağlantısı Başarılı",
                 productName,
                 1,
                 0,
-                5.0,
-                "https://example.com")
+                5,
+                _baseUrl ?? "")
         ];
-
-        return results;
     }
 }

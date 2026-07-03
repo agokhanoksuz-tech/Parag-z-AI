@@ -1,13 +1,24 @@
-﻿using PriceFinderAI.Application.Interfaces;
+﻿using Microsoft.Extensions.Configuration;
+using PriceFinderAI.Application.Interfaces;
 using PriceFinderAI.Application.Services;
 using PriceFinderAI.Infrastructure.Providers;
-
 Console.OutputEncoding = System.Text.Encoding.UTF8;
+var configuration = new ConfigurationBuilder()
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+    .AddUserSecrets<Program>()
+    .Build();
 
+var apiKey = configuration["SearchApi:ApiKey"];
+var baseUrl = configuration["SearchApi:BaseUrl"];
+
+Console.WriteLine($"Search API BaseUrl: {baseUrl}");
+Console.WriteLine(string.IsNullOrWhiteSpace(apiKey)
+    ? "Search API Key: Henüz eklenmedi"
+    : "Search API Key: Yüklendi");
 IReadOnlyList<IPriceProvider> providers =
 [
     new FakePriceProvider(),
-    new WebSearchPriceProvider()
+    new WebSearchPriceProvider(apiKey, baseUrl)
 ];
 var aggregator = new PriceAggregatorService(providers);
 
