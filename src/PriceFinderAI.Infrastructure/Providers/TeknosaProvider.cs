@@ -8,7 +8,12 @@ namespace PriceFinderAI.Infrastructure.Providers;
 
 public sealed class TeknosaProvider : IPriceProvider
 {
-    private readonly HttpClient _httpClient = new();
+    private readonly HttpClient _httpClient;
+
+    public TeknosaProvider(HttpClient? httpClient = null)
+    {
+        _httpClient = httpClient ?? new HttpClient();
+    }
 
     public string Name => "Teknosa";
 

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using PriceFinderAI.Application.Interfaces;
 using PriceFinderAI.Core.Models;
 
@@ -6,10 +7,12 @@ namespace PriceFinderAI.Application.Services;
 public sealed class PriceAggregatorService
 {
     private readonly IReadOnlyList<IPriceProvider> _providers;
+    private readonly ILogger? _logger;
 
-    public PriceAggregatorService(IEnumerable<IPriceProvider> providers)
+    public PriceAggregatorService(IEnumerable<IPriceProvider> providers, ILogger? logger = null)
     {
         _providers = providers.ToList();
+        _logger = logger;
     }
 
     public async Task<IReadOnlyList<PriceResult>> SearchAllAsync(string productName)
@@ -18,8 +21,15 @@ public sealed class PriceAggregatorService
 
         foreach (var provider in _providers)
         {
-            var results = await provider.SearchAsync(productName);
-            allResults.AddRange(results);
+            try
+            {
+                var results = await provider.SearchAsync(productName);
+                allResults.AddRange(results);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "{Provider} sağlayıcısından sonuç alınamadı", provider.Name);
+            }
         }
 
         return allResults

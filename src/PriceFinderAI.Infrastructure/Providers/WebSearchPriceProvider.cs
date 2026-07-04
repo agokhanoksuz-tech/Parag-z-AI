@@ -6,14 +6,15 @@ namespace PriceFinderAI.Infrastructure.Providers;
 
 public sealed class WebSearchPriceProvider : IPriceProvider
 {
-    private readonly HttpClient _httpClient = new();
+    private readonly HttpClient _httpClient;
     private readonly string? _apiKey;
     private readonly string? _baseUrl;
 
-    public WebSearchPriceProvider(string? apiKey, string? baseUrl)
+    public WebSearchPriceProvider(string? apiKey, string? baseUrl, HttpClient? httpClient = null)
     {
         _apiKey = apiKey;
         _baseUrl = baseUrl;
+        _httpClient = httpClient ?? new HttpClient();
     }
 
     public string Name => "Web Search Provider";

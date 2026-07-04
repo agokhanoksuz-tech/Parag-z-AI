@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\PriceFinderAI.Application\PriceFinderAI.Application.csproj" />
+    <ProjectReference Include="..\..\src\PriceFinderAI.Infrastructure\PriceFinderAI.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
