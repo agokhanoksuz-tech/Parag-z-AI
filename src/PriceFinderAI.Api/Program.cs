@@ -18,21 +18,34 @@ app.MapGet("/search", async (string product, IConfiguration configuration) =>
     var apiKey = configuration["SearchApi:ApiKey"];
     var baseUrl = configuration["SearchApi:BaseUrl"];
 
+    var searchProduct = product
+        .Replace("128gb", "", StringComparison.OrdinalIgnoreCase)
+        .Replace("256gb", "", StringComparison.OrdinalIgnoreCase)
+        .Replace("512gb", "", StringComparison.OrdinalIgnoreCase)
+        .Replace("1tb", "", StringComparison.OrdinalIgnoreCase)
+        .Trim();
+
     IReadOnlyList<IPriceProvider> providers =
     [
-        new WebSearchPriceProvider(apiKey, baseUrl)
+        new WebSearchPriceProvider(apiKey, baseUrl),
+        new TeknosaProvider()
     ];
 
     var aggregator = new PriceAggregatorService(providers);
-    var results = await aggregator.SearchAllAsync(product);
+    var matcher = new ProductMatchingService();
 
-    return Results.Ok(new
-    {
-        apiKeyStatus = string.IsNullOrWhiteSpace(apiKey) ? "YOK" : "VAR",
-        baseUrl,
-        count = results.Count,
-        results
-    });
+    var rawResults = await aggregator.SearchAllAsync(searchProduct);
+
+    var filteredResults = matcher
+        .FilterRelevantResults(product, rawResults)
+        .Where(x => x.TotalPrice > 0)
+        .ToList();
+
+    var finalResults = filteredResults.Count > 0
+        ? filteredResults
+        : rawResults.Where(x => x.TotalPrice > 0).ToList();
+
+    return Results.Ok(finalResults);
 });
 
 app.Run();

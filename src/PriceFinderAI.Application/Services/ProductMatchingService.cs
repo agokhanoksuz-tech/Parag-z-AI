@@ -17,7 +17,7 @@ public sealed class ProductMatchingService
     {
         var queryLower = query.ToLowerInvariant();
         var requestedStorage = ExtractStorage(queryLower);
-        var requestedNumbers = ExtractNumbers(queryLower);
+        var requestedModelNumbers = ExtractModelNumbers(queryLower);
 
         return results
             .Where(result =>
@@ -39,49 +39,51 @@ public sealed class ProductMatchingService
                         return false;
                 }
 
-                foreach (var number in requestedNumbers)
+                foreach (var number in requestedModelNumbers)
                 {
                     if (!title.Contains(number))
                         return false;
                 }
 
-                if (requestedStorage is not null)
-                {
-                    var titleStorage = ExtractStorage(title);
-
-                    if (titleStorage is not null && titleStorage != requestedStorage)
-                        return false;
-                }
-
                 return true;
             })
-            .OrderBy(x => x.TotalPrice)
+            .OrderByDescending(x => StorageScore(x.ProductName, requestedStorage))
+            .ThenBy(x => x.TotalPrice)
             .ToList();
     }
 
     private static int? ExtractStorage(string text)
     {
-        if (text.Contains("128 gb") || text.Contains("128gb")) return 128;
-        if (text.Contains("256 gb") || text.Contains("256gb")) return 256;
-        if (text.Contains("512 gb") || text.Contains("512gb")) return 512;
-        if (text.Contains("1 tb") || text.Contains("1tb")) return 1024;
+        var normalized = text.ToLowerInvariant().Replace(" ", "");
+
+        if (normalized.Contains("128gb")) return 128;
+        if (normalized.Contains("256gb")) return 256;
+        if (normalized.Contains("512gb")) return 512;
+        if (normalized.Contains("1tb")) return 1024;
 
         return null;
     }
 
-    private static IReadOnlyList<string> ExtractNumbers(string text)
+    private static IReadOnlyList<string> ExtractModelNumbers(string text)
     {
         return Regex.Matches(text, @"\b\d{1,2}\b")
             .Select(match => match.Value)
             .ToList();
     }
 
-    private static IReadOnlyList<string> ExtractWords(string text)
+    private static int StorageScore(string title, int? requestedStorage)
     {
-        return text
-            .ToLowerInvariant()
-            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-            .Where(x => !int.TryParse(x, out _))
-            .ToList();
+        if (requestedStorage is null)
+            return 0;
+
+        var titleStorage = ExtractStorage(title);
+
+        if (titleStorage == requestedStorage)
+            return 2;
+
+        if (titleStorage is null)
+            return 1;
+
+        return 0;
     }
 }
