@@ -44,6 +44,16 @@ public class ProductMatchingServiceTests
     }
 
     [Fact]
+    public void Filter_RemovesKapakAccessories_EvenWhenVariantMatches()
+    {
+        var results = new[] { Result("iPhone 15 Pro Max Magsafe Kapak - Gold") };
+
+        var filtered = _sut.Filter("iphone 15 pro max", results);
+
+        Assert.Empty(filtered);
+    }
+
+    [Fact]
     public void Filter_IsCaseAndTurkishCharacterInsensitive()
     {
         var results = new[] { Result("APPLE İPHONE 15 128 GB MAVİ") };
@@ -51,5 +61,61 @@ public class ProductMatchingServiceTests
         var filtered = _sut.Filter("İPHONE 15", results);
 
         Assert.Single(filtered);
+    }
+
+    [Theory]
+    [InlineData("Apple iPhone 15 128 GB Siyah")]
+    [InlineData("Apple iPhone 15 128GB Siyah")]
+    public void Filter_MatchesStorageRegardlessOfSpacingBetweenNumberAndUnit(string productName)
+    {
+        var results = new[] { Result(productName) };
+
+        var filtered = _sut.Filter("iphone 15 128gb", results);
+
+        Assert.Single(filtered);
+    }
+
+    [Theory]
+    [InlineData("Apple iPhone 15 Pro 128 GB")]
+    [InlineData("Apple iPhone 15 Pro Max 256 GB")]
+    [InlineData("Apple iPhone 15 Plus 128 GB")]
+    public void Filter_ExcludesOtherVariants_WhenBaseModelIsRequested(string productName)
+    {
+        var results = new[] { Result(productName) };
+
+        var filtered = _sut.Filter("iphone 15", results);
+
+        Assert.Empty(filtered);
+    }
+
+    [Fact]
+    public void Filter_KeepsOnlyProMax_WhenProMaxIsRequested()
+    {
+        var results = new[]
+        {
+            Result("Apple iPhone 15 Pro Max 256 GB"),
+            Result("Apple iPhone 15 Pro 128 GB"),
+            Result("Apple iPhone 15 128 GB")
+        };
+
+        var filtered = _sut.Filter("iphone 15 pro max", results);
+
+        var result = Assert.Single(filtered);
+        Assert.Equal("Apple iPhone 15 Pro Max 256 GB", result.ProductName);
+    }
+
+    [Fact]
+    public void Filter_KeepsOnlyPlainPro_ExcludingProMax_WhenProIsRequested()
+    {
+        var results = new[]
+        {
+            Result("Apple iPhone 15 Pro Max 256 GB"),
+            Result("Apple iPhone 15 Pro 128 GB")
+        };
+
+        var filtered = _sut.Filter("iphone 15 pro", results);
+
+        var result = Assert.Single(filtered);
+        Assert.Equal("Apple iPhone 15 Pro 128 GB", result.ProductName);
     }
 }

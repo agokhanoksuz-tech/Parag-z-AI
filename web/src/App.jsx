@@ -21,6 +21,25 @@ function TrustBadge({ score }) {
   );
 }
 
+function RefurbishedBadge() {
+  return (
+    <span
+      style={{
+        display: "inline-block",
+        padding: "2px 8px",
+        borderRadius: 999,
+        fontSize: 13,
+        marginRight: 8,
+        color: "#b45309",
+        background: "rgba(180, 83, 9, 0.12)",
+        border: "1px solid rgba(180, 83, 9, 0.4)",
+      }}
+    >
+      Yenilenmiş / İkinci El
+    </span>
+  );
+}
+
 function ResultCard({ item, highlight }) {
   return (
     <div
@@ -38,6 +57,7 @@ function ResultCard({ item, highlight }) {
 
       <div style={{ margin: "8px 0" }}>
         <TrustBadge score={item.trustScore} />
+        {item.isRefurbished && <RefurbishedBadge />}
         {item.last30DaysLowestPrice != null && (
           <span style={{ fontSize: 13, color: "var(--text)" }}>
             Son 30 gün en düşük: {item.last30DaysLowestPrice.toLocaleString("tr-TR")} TL

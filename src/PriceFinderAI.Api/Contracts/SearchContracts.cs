@@ -6,7 +6,8 @@ public sealed record SearchResultDto(
     decimal Price,
     string Url,
     double TrustScore,
-    decimal? Last30DaysLowestPrice);
+    decimal? Last30DaysLowestPrice,
+    bool IsRefurbished);
 
 public sealed record SearchResponse(
     string SearchedProduct,

@@ -87,7 +87,8 @@ app.MapGet("/search", async (
             x.TotalPrice,
             x.ProductUrl,
             SellerTrustCatalog.GetScore(x.StoreName),
-            last30DaysLowest.TryGetValue(x.StoreName, out var lowest) ? lowest : null))
+            last30DaysLowest.TryGetValue(x.StoreName, out var lowest) ? lowest : null,
+            ProductConditionCatalog.IsRefurbished(x.ProductName)))
         .ToList();
 
     // Sıralama parametresinden bağımsız hesaplanır — "en ucuz" sort=desc'te

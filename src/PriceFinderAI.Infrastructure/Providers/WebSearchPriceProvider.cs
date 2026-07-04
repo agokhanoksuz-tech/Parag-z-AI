@@ -42,7 +42,7 @@ public sealed class WebSearchPriceProvider : IPriceProvider
 
         var priceResults = new List<PriceResult>();
 
-        foreach (var item in results.EnumerateArray().Take(10))
+        foreach (var item in results.EnumerateArray().Take(30))
         {
             var title = GetFirstAvailableString(item, "title");
 

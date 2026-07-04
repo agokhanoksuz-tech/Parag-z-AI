@@ -8,7 +8,7 @@ public sealed class ProductMatchingService
     private static readonly string[] BadWords =
     [
         "replika", "replica", "çakma", "cakma",
-        "kılıf", "kilif", "case",
+        "kılıf", "kilif", "case", "kapak",
         "cam", "koruyucu", "ekran koruyucu",
         "şarj", "sarj", "adaptör", "adapter",
         "kablo", "kulaklık", "airpods",
@@ -20,13 +20,14 @@ public sealed class ProductMatchingService
     {
         var normalizedQuery = Normalize(query);
         var queryWords = normalizedQuery.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var queryVariant = ExtractVariant(normalizedQuery);
 
         return products
-            .Where(p => IsValidProduct(p, queryWords))
+            .Where(p => IsValidProduct(p, queryWords, queryVariant))
             .ToList();
     }
 
-    private static bool IsValidProduct(PriceResult product, string[] queryWords)
+    private static bool IsValidProduct(PriceResult product, string[] queryWords, PhoneVariant queryVariant)
     {
         var title = Normalize(product.ProductName);
 
@@ -39,13 +40,47 @@ public sealed class ProductMatchingService
                 return false;
         }
 
+        // "iphone 15" arandığında "iphone 15 pro max" gibi farklı bir
+        // varyantın sızmaması için: sorgu belirli bir varyant istiyorsa
+        // (veya hiç istemiyorsa) başlık aynı varyanda ait olmalı.
+        if (ExtractVariant(title) != queryVariant)
+            return false;
+
         return true;
+    }
+
+    private enum PhoneVariant
+    {
+        Base,
+        Plus,
+        Pro,
+        ProMax
+    }
+
+    private static PhoneVariant ExtractVariant(string normalizedText)
+    {
+        if (normalizedText.Contains("pro max"))
+            return PhoneVariant.ProMax;
+
+        if (normalizedText.Contains("pro"))
+            return PhoneVariant.Pro;
+
+        if (normalizedText.Contains("plus"))
+            return PhoneVariant.Plus;
+
+        return PhoneVariant.Base;
     }
 
     public static string Normalize(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
             return string.Empty;
+
+        // ToLowerInvariant() büyük Türkçe "İ" harfini küçültmüyor (olduğu gibi
+        // bırakıyor); aşağıdaki regex ASCII olmayan bu karakteri sonradan
+        // sessizce siler ve kelimeyi ikiye böler (örn. "İkinci" -> "kinci").
+        // Bu yüzden küçültmeden önce açıkça "i"ye çevriliyor.
+        text = text.Replace("İ", "i");
 
         text = text.ToLowerInvariant();
 
@@ -59,6 +94,10 @@ public sealed class ProductMatchingService
 
         text = Regex.Replace(text, @"[^a-z0-9\s]", " ");
         text = Regex.Replace(text, @"\s+", " ").Trim();
+
+        // "128 gb" ve "128gb" aynı ürünü ifade eder; boşluklu/bitişik yazım
+        // farkı yüzünden alt-dize eşleşmesinin kırılmaması için birleştir.
+        text = Regex.Replace(text, @"(\d+)\s+(gb|tb)\b", "$1$2");
 
         return text;
     }
