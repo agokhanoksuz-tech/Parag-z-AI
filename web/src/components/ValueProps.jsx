@@ -26,7 +26,7 @@ const PROPS = [
 export default function ValueProps() {
   return (
     <section>
-      <h2 className="section-title">Neden PriceFinder AI?</h2>
+      <h2 className="section-title">Neden Paragöz AI?</h2>
       <div className="value-grid">
         {PROPS.map(({ Icon, title, description }) => (
           <div className="value-card" key={title}>

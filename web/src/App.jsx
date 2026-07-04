@@ -430,7 +430,7 @@ export default function App() {
     <div className="app">
       <header className="site-header">
         <button type="button" className="brand" onClick={handleGoHome}>
-          PriceFinder AI
+          Paragöz AI
         </button>
 
         <nav className="header-nav">
@@ -486,7 +486,7 @@ export default function App() {
 
       <div className="hero">
         <p className="eyebrow">Türkiye'nin akıllı fiyat karşılaştırma platformu</p>
-        <h1>PriceFinder AI</h1>
+        <h1>Paragöz AI</h1>
         <p>Bir ürün adı yaz, onlarca mağazayı aynı anda tara, en ucuz fiyatı bul.</p>
 
         <div className="search-row">
