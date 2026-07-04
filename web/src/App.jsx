@@ -6,6 +6,7 @@ import FavoriteButton from "./components/FavoriteButton";
 import Footer from "./components/Footer";
 import HowItWorks from "./components/HowItWorks";
 import LoginForm from "./components/LoginForm";
+import Logo from "./components/Logo";
 import PriceHistoryChart from "./components/PriceHistoryChart";
 import RegisterForm from "./components/RegisterForm";
 import { StoreStrip, TrustFeatures } from "./components/TrustBar";
@@ -430,7 +431,8 @@ export default function App() {
     <div className="app">
       <header className="site-header">
         <button type="button" className="brand" onClick={handleGoHome}>
-          Paragöz AI
+          <Logo />
+          <span>Paragöz AI</span>
         </button>
 
         <nav className="header-nav">
