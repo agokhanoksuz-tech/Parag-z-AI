@@ -58,4 +58,40 @@ public class PriceSearchPipelineTests
         Assert.Equal("128gb", provider.LastQuery);
         Assert.Equal("128gb", outcome.WidenedQuery);
     }
+
+    [Fact]
+    public async Task RunAsync_ExcludesImplausiblyCheapOutlier_WhenEnoughRealResultsExist()
+    {
+        // Bu ürün başlığı hiçbir BadWords anahtar kelimesini içermiyor
+        // (gerçek hayatta görülen "RexOwl - Tasarım Deri Ürünler" gibi
+        // marka-odaklı aksesuar başlıklarını simüle ediyor).
+        var provider = new RecordingProvider(
+        [
+            Result("RexOwl Tasarım Deri Ürünler iPhone 15 Pro Max", 419),
+            Result("Apple iPhone 15 Pro Max 256GB", 45000),
+            Result("Apple iPhone 15 Pro Max 256GB", 48000),
+            Result("Apple iPhone 15 Pro Max 256GB", 52000)
+        ]);
+
+        var pipeline = new PriceSearchPipeline();
+        var outcome = await pipeline.RunAsync("iphone 15 pro max", [provider]);
+
+        Assert.Equal(3, outcome.Results.Count);
+        Assert.All(outcome.Results, r => Assert.True(r.TotalPrice >= 45000));
+    }
+
+    [Fact]
+    public async Task RunAsync_DoesNotExcludeOutliers_WhenFewerThanThreeResults()
+    {
+        var provider = new RecordingProvider(
+        [
+            Result("RexOwl Tasarım Deri Ürünler iPhone 15 Pro Max", 419),
+            Result("Apple iPhone 15 Pro Max 256GB", 45000)
+        ]);
+
+        var pipeline = new PriceSearchPipeline();
+        var outcome = await pipeline.RunAsync("iphone 15 pro max", [provider]);
+
+        Assert.Equal(2, outcome.Results.Count);
+    }
 }

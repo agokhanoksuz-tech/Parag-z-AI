@@ -8,5 +8,6 @@ public sealed class PriceSnapshot
     public required string ProductName { get; set; }
     public decimal Price { get; set; }
     public required string Url { get; set; }
+    public string? ImageUrl { get; set; }
     public DateTime CheckedAt { get; set; }
 }

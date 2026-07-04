@@ -10,7 +10,7 @@ using PriceFinderAI.Infrastructure.Data;
 
 namespace PriceFinderAI.Infrastructure.Migrations
 {
-    [DbContext(typeof(PriceHistoryDbContext))]
+    [DbContext(typeof(AppDbContext))]
     [Migration("20260704144641_InitialCreate")]
     partial class InitialCreate
     {

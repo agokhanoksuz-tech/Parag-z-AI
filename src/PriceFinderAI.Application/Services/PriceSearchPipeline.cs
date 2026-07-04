@@ -27,12 +27,38 @@ public sealed class PriceSearchPipeline
         var rawResults = await aggregator.SearchAllAsync(widenedQuery);
 
         var matcher = new ProductMatchingService();
-        var filteredResults = matcher
+        IReadOnlyList<PriceResult> filteredResults = matcher
             .Filter(query, rawResults)
             .Where(x => x.TotalPrice > 0)
             .ToList();
 
+        filteredResults = ExcludePriceOutliers(filteredResults);
+
         return new PriceSearchOutcome(widenedQuery, filteredResults);
+    }
+
+    /// <summary>
+    /// Aksesuar/kılıf ilanları başlıkta hiçbir anahtar kelimeyi tutturmadan
+    /// kelime bazlı filtreyi geçebiliyor (örn. "Casedoit - Good Ahead"),
+    /// ama fiyatları gerçek bir telefondan onlarca kat düşük oluyor. En az
+    /// 3 sonuç varsa medyanın çok altındaki (implausibly ucuz) sonuçları ele.
+    /// </summary>
+    private static IReadOnlyList<PriceResult> ExcludePriceOutliers(IReadOnlyList<PriceResult> results)
+    {
+        const decimal minimumFractionOfMedian = 0.25m;
+
+        if (results.Count < 3)
+            return results;
+
+        var sortedPrices = results.Select(x => x.TotalPrice).OrderBy(p => p).ToList();
+        var mid = sortedPrices.Count / 2;
+        var median = sortedPrices.Count % 2 == 0
+            ? (sortedPrices[mid - 1] + sortedPrices[mid]) / 2
+            : sortedPrices[mid];
+
+        var threshold = median * minimumFractionOfMedian;
+
+        return results.Where(x => x.TotalPrice >= threshold).ToList();
     }
 
     public static string WidenForSearch(string query)

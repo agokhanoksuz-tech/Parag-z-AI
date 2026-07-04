@@ -7,7 +7,10 @@ public sealed record SearchResultDto(
     string Url,
     double TrustScore,
     decimal? Last30DaysLowestPrice,
-    bool IsRefurbished);
+    bool IsRefurbished,
+    string? ImageUrl,
+    string? StoreIconUrl,
+    string? ImmersiveProductToken);
 
 public sealed record SearchResponse(
     string SearchedProduct,

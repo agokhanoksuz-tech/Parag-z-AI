@@ -59,13 +59,20 @@ public sealed class WebSearchPriceProvider : IPriceProvider
 
             var price = ParsePrice(priceText);
 
+            var imageUrl = GetFirstAvailableString(item, "thumbnail");
+            var storeIconUrl = GetFirstAvailableString(item, "source_icon");
+            var immersiveToken = GetFirstAvailableString(item, "immersive_product_page_token");
+
             priceResults.Add(new PriceResult(
                 source,
                 title,
                 price,
                 0,
                 0,
-                link));
+                link,
+                string.IsNullOrWhiteSpace(imageUrl) ? null : imageUrl,
+                string.IsNullOrWhiteSpace(storeIconUrl) ? null : storeIconUrl,
+                string.IsNullOrWhiteSpace(immersiveToken) ? null : immersiveToken));
         }
 
         return priceResults

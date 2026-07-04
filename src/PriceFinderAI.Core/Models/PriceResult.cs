@@ -6,7 +6,10 @@ public sealed record PriceResult(
     decimal Price,
     decimal ShippingPrice,
     double TrustScore,
-    string ProductUrl
+    string ProductUrl,
+    string? ImageUrl = null,
+    string? StoreIconUrl = null,
+    string? ImmersiveProductToken = null
 )
 {
     public decimal TotalPrice => Price + ShippingPrice;

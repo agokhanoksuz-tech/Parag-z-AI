@@ -1,0 +1,14 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/.vs/
+**/.vscode/
+.git/
+.github/
+.claude/
+*.db
+*.db-shm
+*.db-wal
+appsettings.Development.json
+.env

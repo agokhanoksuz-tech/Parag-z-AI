@@ -22,16 +22,25 @@ public sealed class ProductMatchingService
         var queryWords = normalizedQuery.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var queryVariant = ExtractVariant(normalizedQuery);
 
+        // Sorgunun kendisi bir "kötü kelime" içeriyorsa (örn. kullanıcı doğrudan
+        // "airpods" veya "kulaklık" arıyorsa), o kelime bu arama için istenmeyen
+        // bir aksesuar göstergesi değil, doğrudan arananın kendisidir — yoksa
+        // "airpods pro" araması kendi sonuçlarını bloke eder.
+        var applicableBadWords = BadWords
+            .Where(bad => !normalizedQuery.Contains(Normalize(bad)))
+            .ToArray();
+
         return products
-            .Where(p => IsValidProduct(p, queryWords, queryVariant))
+            .Where(p => IsValidProduct(p, queryWords, queryVariant, applicableBadWords))
             .ToList();
     }
 
-    private static bool IsValidProduct(PriceResult product, string[] queryWords, PhoneVariant queryVariant)
+    private static bool IsValidProduct(PriceResult product, string[] queryWords, PhoneVariant queryVariant, string[] badWords)
     {
         var title = Normalize(product.ProductName);
+        var titleWords = title.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-        if (BadWords.Any(bad => title.Contains(Normalize(bad))))
+        if (badWords.Any(bad => MatchesBadWordPhrase(titleWords, Normalize(bad))))
             return false;
 
         foreach (var word in queryWords)
@@ -47,6 +56,54 @@ public sealed class ProductMatchingService
             return false;
 
         return true;
+    }
+
+    /// <summary>
+    /// Kötü kelime öbeğinin başlıkta kelime bazlı geçip geçmediğini kontrol eder.
+    /// Düz Contains kullanılsaydı "kablo" kötü kelimesi "kablosuz" (wireless)
+    /// içinde de eşleşirdi; ama saf kelime-eşleşmesi de "kılıf" ile "kılıfı" gibi
+    /// Türkçe çekim ekli halleri (aynı kelime, farklı ek) kaçırırdı. Bu yüzden her
+    /// kelime için "önekle başlar ama '-sız/-siz/-suz/-süz' olumsuzluk ekiyle
+    /// devam etmez" kuralı uygulanır (bkz. <see cref="MatchesBadWord"/>).
+    /// </summary>
+    private static bool MatchesBadWordPhrase(string[] titleWords, string normalizedPhrase)
+    {
+        var phraseWords = normalizedPhrase.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        if (phraseWords.Length == 0)
+            return false;
+
+        for (var i = 0; i + phraseWords.Length <= titleWords.Length; i++)
+        {
+            var isMatch = true;
+
+            for (var j = 0; j < phraseWords.Length; j++)
+            {
+                if (!MatchesBadWord(titleWords[i + j], phraseWords[j]))
+                {
+                    isMatch = false;
+                    break;
+                }
+            }
+
+            if (isMatch)
+                return true;
+        }
+
+        return false;
+    }
+
+    private static bool MatchesBadWord(string titleWord, string badWord)
+    {
+        if (!titleWord.StartsWith(badWord, StringComparison.Ordinal))
+            return false;
+
+        var suffix = titleWord[badWord.Length..];
+
+        // Normalize() sonrası Türkçe olumsuzluk eki ("-sız/-siz/-suz/-süz") iki
+        // forma iner: "siz" ve "suz" (ı->i, ü->u dönüşümü nedeniyle).
+        return !suffix.StartsWith("siz", StringComparison.Ordinal)
+            && !suffix.StartsWith("suz", StringComparison.Ordinal);
     }
 
     private enum PhoneVariant
