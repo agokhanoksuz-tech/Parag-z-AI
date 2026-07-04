@@ -431,8 +431,8 @@ export default function App() {
     <div className="app">
       <header className="site-header">
         <button type="button" className="brand" onClick={handleGoHome}>
-          <Logo />
-          <span>Paragöz AI</span>
+          Parag
+          <Logo />z AI
         </button>
 
         <nav className="header-nav">
