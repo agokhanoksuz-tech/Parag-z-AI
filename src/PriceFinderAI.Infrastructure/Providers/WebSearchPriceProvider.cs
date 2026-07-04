@@ -24,16 +24,7 @@ public sealed class WebSearchPriceProvider : IPriceProvider
     {
         if (string.IsNullOrWhiteSpace(_apiKey) || string.IsNullOrWhiteSpace(_baseUrl))
         {
-            return
-            [
-                new PriceResult(
-                    "Web Search",
-                    productName,
-                    0,
-                    0,
-                    0,
-                    "API key henüz eklenmedi")
-            ];
+            return [];
         }
 
         var requestUrl =
@@ -45,37 +36,25 @@ public sealed class WebSearchPriceProvider : IPriceProvider
 
         if (!document.RootElement.TryGetProperty("shopping_results", out var results))
         {
-            return
-            [
-                new PriceResult(
-                    "Web Search",
-                    productName,
-                    0,
-                    0,
-                    0,
-                    "Sonuç bulunamadı")
-            ];
+            return [];
         }
 
         var priceResults = new List<PriceResult>();
 
         foreach (var item in results.EnumerateArray().Take(10))
         {
-            var title = item.TryGetProperty("title", out var titleProp)
-                ? titleProp.GetString() ?? productName
-                : productName;
+            var title = GetFirstAvailableString(item, "title");
 
-            var source = item.TryGetProperty("source", out var sourceProp)
-                ? sourceProp.GetString() ?? "Bilinmeyen Mağaza"
-                : "Bilinmeyen Mağaza";
+            if (string.IsNullOrWhiteSpace(title))
+                title = productName;
 
-            var link = item.TryGetProperty("link", out var linkProp)
-                ? linkProp.GetString() ?? ""
-                : "";
+            var source = GetFirstAvailableString(item, "source", "merchant", "seller");
+            if (string.IsNullOrWhiteSpace(source))
+                source = "Bilinmeyen Mağaza";
 
-            var priceText = item.TryGetProperty("price", out var priceProp)
-                ? priceProp.GetString() ?? ""
-                : "";
+            var link = GetFirstAvailableString(item, "product_link", "link", "serpapi_product_api");
+
+            var priceText = GetFirstAvailableString(item, "price", "extracted_price");
 
             var price = ParsePrice(priceText);
 
@@ -91,6 +70,30 @@ public sealed class WebSearchPriceProvider : IPriceProvider
         return priceResults
             .OrderBy(x => x.TotalPrice)
             .ToList();
+    }
+
+    private static string GetFirstAvailableString(JsonElement item, params string[] propertyNames)
+    {
+        foreach (var propertyName in propertyNames)
+        {
+            if (!item.TryGetProperty(propertyName, out var property))
+                continue;
+
+            if (property.ValueKind == JsonValueKind.String)
+            {
+                var value = property.GetString();
+
+                if (!string.IsNullOrWhiteSpace(value))
+                    return value;
+            }
+
+            if (property.ValueKind == JsonValueKind.Number)
+            {
+                return property.ToString();
+            }
+        }
+
+        return "";
     }
 
     private static decimal ParsePrice(string text)
