@@ -28,7 +28,7 @@ public sealed class WebSearchPriceProvider : IPriceProvider
         }
 
         var requestUrl =
-            $"{_baseUrl}?engine=google_shopping&q={Uri.EscapeDataString(productName)}&gl=tr&hl=tr&api_key={_apiKey}";
+            $"{_baseUrl}?engine=google_shopping&q={Uri.EscapeDataString(productName)}&google_domain=google.com.tr&gl=tr&hl=tr&api_key={_apiKey}";
 
         var json = await _httpClient.GetStringAsync(requestUrl, cancellationToken);
 
