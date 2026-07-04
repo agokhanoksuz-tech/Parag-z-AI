@@ -48,15 +48,16 @@ app.MapGet("/search", async (string product, IConfiguration configuration) =>
         .Replace("1tb", "", StringComparison.OrdinalIgnoreCase)
         .Replace("1 tb", "", StringComparison.OrdinalIgnoreCase)
         .Trim();
+    searchProduct = $"{searchProduct} fiyat";
 
     var rawResults = await aggregator.SearchAllAsync(searchProduct);
-var matcher = new ProductMatchingService();
+    var matcher = new ProductMatchingService();
 
-var finalResults = matcher
-    .FilterRelevantResults(product, rawResults)
-    .Where(x => x.TotalPrice > 0)
-    .ToList();
-   
+    var finalResults = matcher
+        .Filter(product, rawResults)
+        .Where(x => x.TotalPrice > 0)
+        .ToList();
+
     var response = finalResults.Select(x => new
     {
         store = x.StoreName,

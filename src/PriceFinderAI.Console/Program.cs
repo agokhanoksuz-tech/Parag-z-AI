@@ -2,7 +2,9 @@
 using PriceFinderAI.Application.Interfaces;
 using PriceFinderAI.Application.Services;
 using PriceFinderAI.Infrastructure.Providers;
+
 Console.OutputEncoding = System.Text.Encoding.UTF8;
+
 var configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
     .AddUserSecrets<Program>()
@@ -10,24 +12,25 @@ var configuration = new ConfigurationBuilder()
 
 var apiKey = configuration["SearchApi:ApiKey"];
 var baseUrl = configuration["SearchApi:BaseUrl"];
+
 Console.WriteLine(string.IsNullOrWhiteSpace(apiKey)
     ? "API KEY YOK"
     : "API KEY VAR");
-
 Console.WriteLine($"BASE URL: {baseUrl}");
 Console.WriteLine($"Search API BaseUrl: {baseUrl}");
 Console.WriteLine(string.IsNullOrWhiteSpace(apiKey)
     ? "Search API Key: Henüz eklenmedi"
     : "Search API Key: Yüklendi");
+
 IReadOnlyList<IPriceProvider> providers =
 [
     new WebSearchPriceProvider(apiKey, baseUrl),
     new TeknosaProvider()
 ];
+
 var aggregator = new PriceAggregatorService(providers);
 
 Console.WriteLine("=== Paragöz AI ===");
-
 Console.Write("Ürün adı gir: ");
 var productName = Console.ReadLine();
 
@@ -38,13 +41,17 @@ if (string.IsNullOrWhiteSpace(productName))
 }
 
 var matcher = new ProductMatchingService();
-var results = await aggregator.SearchAllAsync(productName); 
-var filteredResults = rawResults
+var rawResults = await aggregator.SearchAllAsync(productName);
+
+// Alakasız ürünleri ele, ardından fiyatı geçerli olmayan (0 veya negatif) sonuçları ele
+var filteredResults = matcher
+    .Filter(productName, rawResults)
     .Where(x => x.TotalPrice > 0)
     .ToList();
 
-Console.WriteLine($"\nToplam geçerli sonuç: {results.Count}");
-foreach (var item in results)
+Console.WriteLine($"\nToplam geçerli sonuç: {filteredResults.Count}");
+
+foreach (var item in filteredResults)
 {
     Console.WriteLine($"{item.StoreName}");
     Console.WriteLine($"Ürün: {item.ProductName}");
