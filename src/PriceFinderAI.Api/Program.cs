@@ -44,16 +44,25 @@ app.MapGet("/search", async (string product, IConfiguration configuration) =>
     var finalResults = filteredResults.Count > 0
         ? filteredResults
         : rawResults.Where(x => x.TotalPrice > 0).ToList();
-
-    var response = finalResults.Select(x => new
+var response = finalResults.Select(x => new
 {
     store = x.StoreName,
     product = x.ProductName,
     price = x.TotalPrice,
     url = x.ProductUrl
-});
+}).ToList();
 
-return Results.Ok(response);
+var cheapest = response.OrderBy(x => x.price).FirstOrDefault();
+
+return Results.Ok(new
+{
+    searchedProduct = product,
+    resultCount = response.Count,
+    cheapest,
+    results = response
+});
+   
+
 });
 
 app.Run();
