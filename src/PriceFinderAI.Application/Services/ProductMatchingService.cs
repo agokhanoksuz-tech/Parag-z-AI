@@ -42,7 +42,7 @@ public sealed class ProductMatchingService
         return true;
     }
 
-    private static string Normalize(string text)
+    public static string Normalize(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
             return string.Empty;

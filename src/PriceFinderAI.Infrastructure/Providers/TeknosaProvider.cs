@@ -78,7 +78,7 @@ public sealed class TeknosaProvider : IPriceProvider
                 productName,
                 price,
                 0,
-                4.5,
+                0,
                 url)
         ];
     }

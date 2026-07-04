@@ -34,6 +34,7 @@ public class TeknosaProviderTests
 
         var result = Assert.Single(results);
         Assert.Equal(44400.00m, result.TotalPrice);
+        Assert.Equal(0, result.TrustScore);
     }
 
     [Fact]
