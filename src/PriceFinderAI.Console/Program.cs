@@ -34,10 +34,14 @@ if (string.IsNullOrWhiteSpace(productName))
 }
 
 var matcher = new ProductMatchingService();
-var results = await aggregator.SearchAllAsync(productName);
+var results = await aggregator.SearchAllAsync(productName); 
 results = matcher.FilterRelevantResults(productName, results);
 Console.WriteLine("\n--- Sonuçlar ---");
+results = results
+    .Where(x => x.TotalPrice > 0)
+    .ToList();
 
+Console.WriteLine($"\nToplam geçerli sonuç: {results.Count}");
 foreach (var item in results)
 {
     Console.WriteLine($"{item.StoreName}");

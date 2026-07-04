@@ -1,0 +1,6 @@
+@PriceFinderAI.Api_HostAddress = http://localhost:5269
+
+GET {{PriceFinderAI.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

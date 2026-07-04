@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>7b6995b7-c965-4fb0-a3f5-81a291c2f4e7</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PriceFinderAI.Core\PriceFinderAI.Core.csproj" />
+    <ProjectReference Include="..\PriceFinderAI.Application\PriceFinderAI.Application.csproj" />
+    <ProjectReference Include="..\PriceFinderAI.Infrastructure\PriceFinderAI.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

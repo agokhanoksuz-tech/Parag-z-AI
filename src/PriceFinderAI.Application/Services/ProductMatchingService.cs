@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using PriceFinderAI.Core.Models;
 
 namespace PriceFinderAI.Application.Services;
@@ -17,6 +18,8 @@ public sealed class ProductMatchingService
         IReadOnlyList<PriceResult> results)
     {
         var queryLower = query.ToLowerInvariant();
+        var requestedStorage = ExtractStorage(queryLower);
+        var requestedNumbers = ExtractNumbers(queryLower);
 
         var filtered = results.Where(result =>
         {
@@ -37,13 +40,17 @@ public sealed class ProductMatchingService
                     return false;
             }
 
-            var requestedGb = ExtractStorage(queryLower);
-
-            if (requestedGb is not null)
+            foreach (var number in requestedNumbers)
             {
-                var titleGb = ExtractStorage(title);
+                if (!title.Contains(number))
+                    return false;
+            }
 
-                if (titleGb is not null && titleGb != requestedGb)
+            if (requestedStorage is not null)
+            {
+                var titleStorage = ExtractStorage(title);
+
+                if (titleStorage is not null && titleStorage != requestedStorage)
                     return false;
             }
 
@@ -70,5 +77,12 @@ public sealed class ProductMatchingService
             return 1024;
 
         return null;
+    }
+
+    private static IReadOnlyList<string> ExtractNumbers(string text)
+    {
+        return Regex.Matches(text, @"\b\d{1,2}\b")
+            .Select(match => match.Value)
+            .ToList();
     }
 }

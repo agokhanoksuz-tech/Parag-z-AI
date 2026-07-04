@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/PriceFinderAI.Api/PriceFinderAI.Api.csproj" />
     <Project Path="src/PriceFinderAI.Application/PriceFinderAI.Application.csproj" />
     <Project Path="src/PriceFinderAI.Console/PriceFinderAI.Console.csproj" />
     <Project Path="src/PriceFinderAI.Core/PriceFinderAI.Core.csproj" />
