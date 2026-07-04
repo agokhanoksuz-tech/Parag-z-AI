@@ -13,68 +13,58 @@ public sealed class ProductMatchingService
         "kablo", "kulaklık", "stand"
     ];
 
-    public IReadOnlyList<PriceResult> FilterRelevantResults(
-        string query,
-        IReadOnlyList<PriceResult> results)
+    public IReadOnlyList<PriceResult> FilterRelevantResults(string query, IReadOnlyList<PriceResult> results)
     {
         var queryLower = query.ToLowerInvariant();
         var requestedStorage = ExtractStorage(queryLower);
         var requestedNumbers = ExtractNumbers(queryLower);
 
-        var filtered = results.Where(result =>
-        {
-            var title = result.ProductName.ToLowerInvariant();
-
-            if (AccessoryWords.Any(word => title.Contains(word)))
-                return false;
-
-            if (queryLower.Contains("pro max") && !title.Contains("pro max"))
-                return false;
-
-            if (queryLower.Contains("pro") && !queryLower.Contains("pro max"))
+        return results
+            .Where(result =>
             {
-                if (!title.Contains("pro"))
+                var title = result.ProductName.ToLowerInvariant();
+
+                if (AccessoryWords.Any(word => title.Contains(word)))
                     return false;
 
-                if (title.Contains("pro max"))
+                if (queryLower.Contains("pro max") && !title.Contains("pro max"))
                     return false;
-            }
 
-            foreach (var number in requestedNumbers)
-            {
-                if (!title.Contains(number))
-                    return false;
-            }
+                if (queryLower.Contains("pro") && !queryLower.Contains("pro max"))
+                {
+                    if (!title.Contains("pro"))
+                        return false;
 
-            if (requestedStorage is not null)
-            {
-                var titleStorage = ExtractStorage(title);
+                    if (title.Contains("pro max"))
+                        return false;
+                }
 
-                if (titleStorage is not null && titleStorage != requestedStorage)
-                    return false;
-            }
+                foreach (var number in requestedNumbers)
+                {
+                    if (!title.Contains(number))
+                        return false;
+                }
 
-            return true;
-        });
+                if (requestedStorage is not null)
+                {
+                    var titleStorage = ExtractStorage(title);
 
-        return filtered
+                    if (titleStorage is not null && titleStorage != requestedStorage)
+                        return false;
+                }
+
+                return true;
+            })
             .OrderBy(x => x.TotalPrice)
             .ToList();
     }
 
     private static int? ExtractStorage(string text)
     {
-        if (text.Contains("128 gb") || text.Contains("128gb"))
-            return 128;
-
-        if (text.Contains("256 gb") || text.Contains("256gb"))
-            return 256;
-
-        if (text.Contains("512 gb") || text.Contains("512gb"))
-            return 512;
-
-        if (text.Contains("1 tb") || text.Contains("1tb"))
-            return 1024;
+        if (text.Contains("128 gb") || text.Contains("128gb")) return 128;
+        if (text.Contains("256 gb") || text.Contains("256gb")) return 256;
+        if (text.Contains("512 gb") || text.Contains("512gb")) return 512;
+        if (text.Contains("1 tb") || text.Contains("1tb")) return 1024;
 
         return null;
     }
@@ -83,6 +73,15 @@ public sealed class ProductMatchingService
     {
         return Regex.Matches(text, @"\b\d{1,2}\b")
             .Select(match => match.Value)
+            .ToList();
+    }
+
+    private static IReadOnlyList<string> ExtractWords(string text)
+    {
+        return text
+            .ToLowerInvariant()
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Where(x => !int.TryParse(x, out _))
             .ToList();
     }
 }

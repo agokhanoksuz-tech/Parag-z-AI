@@ -10,7 +10,11 @@ var configuration = new ConfigurationBuilder()
 
 var apiKey = configuration["SearchApi:ApiKey"];
 var baseUrl = configuration["SearchApi:BaseUrl"];
+Console.WriteLine(string.IsNullOrWhiteSpace(apiKey)
+    ? "API KEY YOK"
+    : "API KEY VAR");
 
+Console.WriteLine($"BASE URL: {baseUrl}");
 Console.WriteLine($"Search API BaseUrl: {baseUrl}");
 Console.WriteLine(string.IsNullOrWhiteSpace(apiKey)
     ? "Search API Key: Henüz eklenmedi"

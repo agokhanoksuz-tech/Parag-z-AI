@@ -1,4 +1,3 @@
-using System.Linq;
 using PriceFinderAI.Application.Interfaces;
 using PriceFinderAI.Application.Services;
 using PriceFinderAI.Infrastructure.Providers;
@@ -14,8 +13,6 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
-
 app.MapGet("/search", async (string product, IConfiguration configuration) =>
 {
     var apiKey = configuration["SearchApi:ApiKey"];
@@ -23,21 +20,19 @@ app.MapGet("/search", async (string product, IConfiguration configuration) =>
 
     IReadOnlyList<IPriceProvider> providers =
     [
-        new WebSearchPriceProvider(apiKey, baseUrl),
-        new TeknosaProvider()
+        new WebSearchPriceProvider(apiKey, baseUrl)
     ];
 
     var aggregator = new PriceAggregatorService(providers);
-    var matcher = new ProductMatchingService();
-
     var results = await aggregator.SearchAllAsync(product);
 
-    results = matcher
-        .FilterRelevantResults(product, results)
-        .Where(x => x.TotalPrice > 0)
-        .ToList();
-
-    return Results.Ok(results);
+    return Results.Ok(new
+    {
+        apiKeyStatus = string.IsNullOrWhiteSpace(apiKey) ? "YOK" : "VAR",
+        baseUrl,
+        count = results.Count,
+        results
+    });
 });
 
 app.Run();
