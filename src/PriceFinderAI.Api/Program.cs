@@ -45,7 +45,15 @@ app.MapGet("/search", async (string product, IConfiguration configuration) =>
         ? filteredResults
         : rawResults.Where(x => x.TotalPrice > 0).ToList();
 
-    return Results.Ok(finalResults);
+    var response = finalResults.Select(x => new
+{
+    store = x.StoreName,
+    product = x.ProductName,
+    price = x.TotalPrice,
+    url = x.ProductUrl
+});
+
+return Results.Ok(response);
 });
 
 app.Run();
