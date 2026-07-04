@@ -39,9 +39,7 @@ if (string.IsNullOrWhiteSpace(productName))
 
 var matcher = new ProductMatchingService();
 var results = await aggregator.SearchAllAsync(productName); 
-results = matcher.FilterRelevantResults(productName, results);
-Console.WriteLine("\n--- Sonuçlar ---");
-results = results
+var filteredResults = rawResults
     .Where(x => x.TotalPrice > 0)
     .ToList();
 
