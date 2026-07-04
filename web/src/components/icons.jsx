@@ -124,10 +124,23 @@ export function KitchenIcon() {
   );
 }
 
-export function ClothingIcon() {
+export function BookIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" {...defaultProps}>
-      <path d="M8 4l4 2 4-2 4 4-3 3v9H7v-9L4 8z" />
+      <path d="M4 5c2-1.5 5-1.5 7 0v14c-2-1.5-5-1.5-7 0V5z" />
+      <path d="M20 5c-2-1.5-5-1.5-7 0v14c2-1.5 5-1.5 7 0V5z" />
+    </svg>
+  );
+}
+
+export function PawIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" {...defaultProps}>
+      <ellipse cx="12" cy="16" rx="5" ry="4" />
+      <circle cx="6" cy="8" r="2.2" />
+      <circle cx="11" cy="5" r="2.2" />
+      <circle cx="16.5" cy="6.5" r="2.2" />
+      <circle cx="19.5" cy="11" r="2" />
     </svg>
   );
 }

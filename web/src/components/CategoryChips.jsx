@@ -1,69 +1,72 @@
 import { useState } from "react";
 import {
   TechIcon,
-  KitchenIcon,
-  ClothingIcon,
   HomeIcon,
-  DropletIcon,
-  DumbbellIcon,
   ToyIcon,
+  WatchIcon,
+  BookIcon,
+  DumbbellIcon,
+  DropletIcon,
   CarIcon,
+  PawIcon,
 } from "./icons";
 
+// Cimri'nin gerçek ana kategori gruplandırmasına göre (bkz. cimri.com) —
+// "Süpermarket" hariç, çünkü orada kupon/broşür tabanlı ayrı bir akış,
+// bizim tek-ürün-fiyat-karşılaştırma modelimize uymuyor.
 const CATEGORIES = [
   {
-    name: "Teknoloji",
+    name: "Elektronik & Cep Telefonu",
     Icon: TechIcon,
     items: [
-      { label: "Telefon", term: "iphone 15 128gb" },
+      { label: "Cep Telefonu", term: "iphone 15 128gb" },
       { label: "Tablet", term: "ipad 10. nesil" },
       { label: "Bilgisayar", term: "macbook air m2" },
       { label: "Kulaklık", term: "airpods pro" },
-      { label: "Akıllı Saat", term: "apple watch se" },
       { label: "Televizyon", term: "samsung 55 inç tv" },
       { label: "Oyun Konsolu", term: "playstation 5" },
       { label: "Yazıcı", term: "hp yazıcı" },
     ],
   },
   {
-    name: "Mutfak",
-    Icon: KitchenIcon,
-    items: [
-      { label: "Robot Süpürge", term: "robot süpürge" },
-      { label: "Blender", term: "blender" },
-      { label: "Kahve Makinesi", term: "kahve makinesi" },
-      { label: "Airfryer", term: "airfryer" },
-      { label: "Tencere Seti", term: "tencere seti" },
-      { label: "Su Isıtıcısı", term: "su ısıtıcısı" },
-    ],
-  },
-  {
-    name: "Giyim",
-    Icon: ClothingIcon,
-    items: [
-      { label: "Erkek Ayakkabı", term: "erkek spor ayakkabı" },
-      { label: "Kadın Ayakkabı", term: "kadın spor ayakkabı" },
-      { label: "Mont", term: "erkek mont" },
-      { label: "Sırt Çantası", term: "sırt çantası" },
-    ],
-  },
-  {
-    name: "Ev & Yaşam",
+    name: "Ev, Yaşam & Ofis",
     Icon: HomeIcon,
     items: [
+      { label: "Robot Süpürge", term: "robot süpürge" },
+      { label: "Kahve Makinesi", term: "kahve makinesi" },
+      { label: "Airfryer", term: "airfryer" },
       { label: "Çamaşır Makinesi", term: "çamaşır makinası" },
       { label: "Buzdolabı", term: "buzdolabı" },
       { label: "Klima", term: "klima" },
-      { label: "Elektrikli Süpürge", term: "elektrikli süpürge" },
     ],
   },
   {
-    name: "Kişisel Bakım",
-    Icon: DropletIcon,
+    name: "Anne, Bebek & Oyuncak",
+    Icon: ToyIcon,
     items: [
-      { label: "Saç Kurutma Makinesi", term: "saç kurutma makinesi" },
-      { label: "Elektrikli Diş Fırçası", term: "elektrikli diş fırçası" },
-      { label: "Tıraş Makinesi", term: "tıraş makinesi" },
+      { label: "Bebek Arabası", term: "bebek arabası" },
+      { label: "Bebek Bezi", term: "bebek bezi" },
+      { label: "Mama Sandalyesi", term: "mama sandalyesi" },
+      { label: "Akülü Araba", term: "akülü araba" },
+      { label: "Lego", term: "lego yapı seti" },
+    ],
+  },
+  {
+    name: "Saat, Moda & Ayakkabı",
+    Icon: WatchIcon,
+    items: [
+      { label: "Akıllı Saat", term: "apple watch se" },
+      { label: "Kol Saati", term: "kol saati" },
+      { label: "Spor Ayakkabı", term: "erkek spor ayakkabı" },
+      { label: "Güneş Gözlüğü", term: "güneş gözlüğü" },
+    ],
+  },
+  {
+    name: "Kitap, Müzik & Hobi",
+    Icon: BookIcon,
+    items: [
+      { label: "Drone", term: "drone" },
+      { label: "Gitar", term: "klasik gitar" },
     ],
   },
   {
@@ -76,19 +79,28 @@ const CATEGORIES = [
     ],
   },
   {
-    name: "Bebek & Oyuncak",
-    Icon: ToyIcon,
+    name: "Sağlık, Bakım & Kozmetik",
+    Icon: DropletIcon,
     items: [
-      { label: "Bebek Arabası", term: "bebek arabası" },
-      { label: "Lego", term: "lego yapı seti" },
+      { label: "Saç Kurutma Makinesi", term: "saç kurutma makinesi" },
+      { label: "Elektrikli Diş Fırçası", term: "elektrikli diş fırçası" },
+      { label: "Tıraş Makinesi", term: "tıraş makinesi" },
     ],
   },
   {
-    name: "Otomobil",
+    name: "Oto, Bahçe & Yapı Market",
     Icon: CarIcon,
     items: [
       { label: "Oto Lastik", term: "oto lastik" },
       { label: "Araç Multimedya", term: "araç multimedya" },
+    ],
+  },
+  {
+    name: "Petshop",
+    Icon: PawIcon,
+    items: [
+      { label: "Kedi Maması", term: "kuru kedi maması" },
+      { label: "Köpek Maması", term: "köpek maması" },
     ],
   },
 ];
