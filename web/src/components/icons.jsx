@@ -100,3 +100,85 @@ export function GamepadIcon() {
     </svg>
   );
 }
+
+export function TechIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" {...defaultProps}>
+      <rect x="7" y="7" width="10" height="10" rx="1.5" />
+      <rect x="10" y="10" width="4" height="4" rx="0.5" />
+      <line x1="12" y1="2" x2="12" y2="7" />
+      <line x1="12" y1="17" x2="12" y2="22" />
+      <line x1="2" y1="12" x2="7" y2="12" />
+      <line x1="17" y1="12" x2="22" y2="12" />
+    </svg>
+  );
+}
+
+export function KitchenIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" {...defaultProps}>
+      <path d="M4 11h16v3a5 5 0 0 1-5 5h-6a5 5 0 0 1-5-5v-3z" />
+      <path d="M2 11h2M20 11h2" />
+      <path d="M9 6c0-1 .5-1.5 0-3M15 6c0-1 .5-1.5 0-3" />
+    </svg>
+  );
+}
+
+export function ClothingIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" {...defaultProps}>
+      <path d="M8 4l4 2 4-2 4 4-3 3v9H7v-9L4 8z" />
+    </svg>
+  );
+}
+
+export function HomeIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" {...defaultProps}>
+      <path d="M4 11l8-7 8 7" />
+      <path d="M6 10v10h12V10" />
+      <line x1="10" y1="20" x2="10" y2="13" />
+      <line x1="14" y1="20" x2="14" y2="13" />
+    </svg>
+  );
+}
+
+export function DropletIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" {...defaultProps}>
+      <path d="M12 3c4 5 7 8.5 7 12a7 7 0 0 1-14 0c0-3.5 3-7 7-12z" />
+    </svg>
+  );
+}
+
+export function DumbbellIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" {...defaultProps}>
+      <rect x="2" y="9" width="3" height="6" rx="1" />
+      <rect x="19" y="9" width="3" height="6" rx="1" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+      <rect x="6" y="7" width="2" height="10" rx="1" />
+      <rect x="16" y="7" width="2" height="10" rx="1" />
+    </svg>
+  );
+}
+
+export function ToyIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" {...defaultProps}>
+      <circle cx="12" cy="7" r="4" />
+      <path d="M8 10c-3 1-5 3-5 7v3h18v-3c0-4-2-6-5-7" />
+    </svg>
+  );
+}
+
+export function CarIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" {...defaultProps}>
+      <path d="M3 13l2-5a2 2 0 0 1 2-1h10a2 2 0 0 1 2 1l2 5" />
+      <path d="M3 13h18v4a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H6v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4z" />
+      <circle cx="7" cy="16" r="1.3" fill="currentColor" stroke="none" />
+      <circle cx="17" cy="16" r="1.3" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}

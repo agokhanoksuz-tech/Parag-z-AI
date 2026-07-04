@@ -538,7 +538,7 @@ export default function App() {
           {!hasSearched && !loading && !error && (
             <>
               <section>
-                <h2 className="section-title">Popüler kategoriler</h2>
+                <h2 className="section-title">Kategoriler</h2>
                 <CategoryChips onSelect={handleSuggestionClick} />
               </section>
 

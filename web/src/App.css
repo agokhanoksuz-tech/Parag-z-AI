@@ -733,7 +733,53 @@
   border-color: var(--accent-border);
 }
 
-/* Popüler kategoriler */
+/* Kategoriler — ana kategori sekmeleri + alt kategori çipleri */
+
+.category-browser {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.category-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.category-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 10px 10px 0 0;
+  background: none;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.category-tab:hover {
+  background: var(--accent-bg);
+  color: var(--text-h);
+}
+
+.category-tab.is-active {
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.category-tab svg {
+  flex-shrink: 0;
+}
 
 .category-row {
   display: flex;
@@ -742,9 +788,6 @@
 }
 
 .category-chip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   padding: 10px 18px;
   border-radius: 999px;
   border: 1px solid var(--border);
@@ -763,10 +806,6 @@
   border-color: var(--accent-border);
   background: var(--accent-bg);
   transform: translateY(-1px);
-}
-
-.category-chip svg {
-  color: var(--accent);
 }
 
 /* Nasıl çalışır */
