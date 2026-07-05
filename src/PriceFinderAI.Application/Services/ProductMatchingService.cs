@@ -30,12 +30,31 @@ public sealed class ProductMatchingService
             .Where(bad => !normalizedQuery.Contains(Normalize(bad)))
             .ToArray();
 
+        var strictMatches = products
+            .Where(p => IsValidProduct(p, queryWords, queryVariant, applicableBadWords, enforceVariant: true))
+            .ToList();
+
+        if (strictMatches.Count > 0)
+            return strictMatches;
+
+        // Gerçek bir veri hatası: "Poco X8" gibi bazı modeller piyasada sadece
+        // "Pro" varyantıyla satılıyor — base model hiç yok. Varyant eşleşmesi
+        // katı tutulduğunda bu durumda TÜM sonuçlar elenip "bulunamadı"
+        // gösteriliyordu, oysa ürün gerçekten satışta. Kesin varyant eşleşmesi
+        // hiç sonuç vermediğinde, kelime/kötü-kelime kontrollerini koruyarak
+        // varyant kısıtlaması gevşetilir — kartlarda gerçek başlık zaten
+        // gösterildiği için (örn. "Poco X8 Pro"), kullanıcı ne aldığını görür.
         return products
-            .Where(p => IsValidProduct(p, queryWords, queryVariant, applicableBadWords))
+            .Where(p => IsValidProduct(p, queryWords, queryVariant, applicableBadWords, enforceVariant: false))
             .ToList();
     }
 
-    private static bool IsValidProduct(PriceResult product, string[] queryWords, PhoneVariant queryVariant, string[] badWords)
+    private static bool IsValidProduct(
+        PriceResult product,
+        string[] queryWords,
+        PhoneVariant queryVariant,
+        string[] badWords,
+        bool enforceVariant)
     {
         var title = Normalize(product.ProductName);
         var titleWords = title.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -51,8 +70,9 @@ public sealed class ProductMatchingService
 
         // "iphone 15" arandığında "iphone 15 pro max" gibi farklı bir
         // varyantın sızmaması için: sorgu belirli bir varyant istiyorsa
-        // (veya hiç istemiyorsa) başlık aynı varyanda ait olmalı.
-        if (ExtractVariant(title) != queryVariant)
+        // (veya hiç istemiyorsa) başlık aynı varyanda ait olmalı — ama sadece
+        // bu kontrol tüm sonuçları elemediği sürece (bkz. Filter).
+        if (enforceVariant && ExtractVariant(title) != queryVariant)
             return false;
 
         return true;

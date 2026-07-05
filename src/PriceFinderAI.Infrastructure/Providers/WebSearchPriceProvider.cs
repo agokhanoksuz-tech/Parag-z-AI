@@ -15,10 +15,21 @@ public sealed class WebSearchPriceProvider : IPriceProvider
     {
         _apiKey = apiKey;
         _baseUrl = baseUrl;
-        _httpClient = httpClient ?? new HttpClient();
+        // İlk deneme normalde 1-3 saniyede döner, ama no_cache=true ile yapılan
+        // yeniden deneme (bkz. SearchAsync) Google'ın taze bir tarama yapmasını
+        // gerektiriyor — bu ölçüldüğünde ~22 saniye sürebiliyor. Bu yüzden
+        // zaman aşımı, tipik durumu yavaşlatmadan bu nadir ama gerçek yeniden
+        // deneme senaryosuna yetecek kadar geniş tutuluyor.
+        _httpClient = httpClient ?? new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
     }
 
     public string Name => "Web Search Provider";
+
+    // Google Shopping aynı sorgu için tutarsız şekilde boş sonuç dönebiliyor —
+    // canlıda gözlemlendi: art arda İKİ ayrı no_cache denemesinin ikisi de 0,
+    // üçüncü deneme 40 sonuç verdi. Tek bir yeniden deneme her zaman yetmiyor,
+    // bu yüzden en fazla 2 ek (no_cache) deneme yapılır.
+    private const int MaxNoCacheRetries = 2;
 
     public async Task<IReadOnlyList<PriceResult>> SearchAsync(
         string productName,
@@ -32,6 +43,40 @@ public sealed class WebSearchPriceProvider : IPriceProvider
         var requestUrl =
             $"{_baseUrl}?engine=google_shopping&q={Uri.EscapeDataString(productName)}&google_domain=google.com.tr&gl=tr&hl=tr&api_key={_apiKey}";
 
+        var results = await TryFetchResultsAsync(requestUrl, productName, cancellationToken);
+
+        for (var attempt = 0; results.Count == 0 && attempt < MaxNoCacheRetries; attempt++)
+        {
+            results = await TryFetchResultsAsync($"{requestUrl}&no_cache=true", productName, cancellationToken);
+        }
+
+        return results;
+    }
+
+    private async Task<List<PriceResult>> TryFetchResultsAsync(
+        string requestUrl,
+        string productName,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await FetchResultsAsync(requestUrl, productName, cancellationToken);
+        }
+        catch (Exception) when (!cancellationToken.IsCancellationRequested)
+        {
+            // Bir deneme zaman aşımına uğrayabiliyor (Google Shopping bazı
+            // sorgular için gerçekten yavaş yanıt veriyor) — bu durum boş
+            // sonuçla aynı şekilde ele alınıp bir sonraki denemeye geçilir,
+            // üst katmana (aggregator) hemen hata fırlatılmaz.
+            return [];
+        }
+    }
+
+    private async Task<List<PriceResult>> FetchResultsAsync(
+        string requestUrl,
+        string productName,
+        CancellationToken cancellationToken)
+    {
         var json = await _httpClient.GetStringAsync(requestUrl, cancellationToken);
 
         using var document = JsonDocument.Parse(json);

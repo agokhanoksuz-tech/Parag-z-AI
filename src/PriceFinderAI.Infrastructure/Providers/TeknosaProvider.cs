@@ -12,7 +12,7 @@ public sealed class TeknosaProvider : IPriceProvider
 
     public TeknosaProvider(HttpClient? httpClient = null)
     {
-        _httpClient = httpClient ?? new HttpClient();
+        _httpClient = httpClient ?? new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
     }
 
     public string Name => "Teknosa";

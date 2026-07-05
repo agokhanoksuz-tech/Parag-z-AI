@@ -254,6 +254,171 @@ public class WebSearchPriceProviderTests
     }
 
     [Fact]
+    public async Task SearchAsync_RetriesWithNoCache_WhenFirstAttemptReturnsNoShoppingResults()
+    {
+        // Gerçek bir davranış: Google Shopping aynı sorgu için bazen tutarsız
+        // şekilde 0 sonuç dönüyor (SerpApi'nin önbelleğe aldığı boş bir yanıt
+        // olabilir) — ilk deneme boşsa no_cache ile bir kez daha denenmeli.
+        const string emptyJson = """{"error":"Google hasn't returned any results for this query."}""";
+        const string secondAttemptJson = """
+        {
+          "shopping_results": [
+            {
+              "title": "Poco X8 5G 128 GB",
+              "source": "Test Mağaza",
+              "price": "12.999,00 TL",
+              "product_link": "https://example.com/1"
+            }
+          ]
+        }
+        """;
+
+        var callCount = 0;
+        var handler = new FakeHttpMessageHandler(request =>
+        {
+            callCount++;
+            var isRetry = request.RequestUri!.Query.Contains("no_cache=true");
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(isRetry ? secondAttemptJson : emptyJson)
+            };
+        });
+
+        var provider = new WebSearchPriceProvider("fake-key", "https://serpapi.com/search.json", new HttpClient(handler));
+
+        var results = await provider.SearchAsync("poco x8");
+
+        Assert.Equal(2, callCount);
+        var result = Assert.Single(results);
+        Assert.Equal("Poco X8 5G 128 GB", result.ProductName);
+    }
+
+    [Fact]
+    public async Task SearchAsync_RetriesTwice_WhenFirstNoCacheAttemptIsAlsoEmpty()
+    {
+        // Canlıda gözlemlendi: art arda İKİ ayrı no_cache denemesinin ikisi de
+        // 0 sonuç döndü, üçüncü deneme 40 sonuç verdi — tek bir yeniden deneme
+        // her zaman yetmiyor.
+        const string emptyJson = """{"error":"Google hasn't returned any results for this query."}""";
+        const string successJson = """
+        {
+          "shopping_results": [
+            {
+              "title": "Poco X8 5G 128 GB",
+              "source": "Test Mağaza",
+              "price": "12.999,00 TL",
+              "product_link": "https://example.com/1"
+            }
+          ]
+        }
+        """;
+
+        var callCount = 0;
+        var handler = new FakeHttpMessageHandler(_ =>
+        {
+            callCount++;
+            var content = callCount < 3 ? emptyJson : successJson;
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(content) };
+        });
+
+        var provider = new WebSearchPriceProvider("fake-key", "https://serpapi.com/search.json", new HttpClient(handler));
+
+        var results = await provider.SearchAsync("poco x8");
+
+        Assert.Equal(3, callCount);
+        Assert.Single(results);
+    }
+
+    [Fact]
+    public async Task SearchAsync_GivesUpAfterExhaustingRetries_WhenAllAttemptsReturnEmpty()
+    {
+        const string emptyJson = """{"error":"Google hasn't returned any results for this query."}""";
+
+        var callCount = 0;
+        var handler = new FakeHttpMessageHandler(_ =>
+        {
+            callCount++;
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(emptyJson) };
+        });
+
+        var provider = new WebSearchPriceProvider("fake-key", "https://serpapi.com/search.json", new HttpClient(handler));
+
+        var results = await provider.SearchAsync("poco x8");
+
+        Assert.Equal(3, callCount);
+        Assert.Empty(results);
+    }
+
+    [Fact]
+    public async Task SearchAsync_RetriesWithNoCache_WhenFirstAttemptThrows()
+    {
+        // Gerçek bir canlı davranış: ilk SerpApi çağrısı bazen zaman aşımına
+        // uğruyor (bkz. HttpClient.Timeout). Bu durum boş sonuçla aynı şekilde
+        // ele alınıp no_cache ile yeniden denenmeli, üst katmana hemen hata
+        // fırlatılmamalı.
+        const string secondAttemptJson = """
+        {
+          "shopping_results": [
+            {
+              "title": "Poco X8 5G 128 GB",
+              "source": "Test Mağaza",
+              "price": "12.999,00 TL",
+              "product_link": "https://example.com/1"
+            }
+          ]
+        }
+        """;
+
+        var callCount = 0;
+        var handler = new FakeHttpMessageHandler(request =>
+        {
+            callCount++;
+            if (!request.RequestUri!.Query.Contains("no_cache=true"))
+                throw new HttpRequestException("simulated timeout");
+
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(secondAttemptJson) };
+        });
+
+        var provider = new WebSearchPriceProvider("fake-key", "https://serpapi.com/search.json", new HttpClient(handler));
+
+        var results = await provider.SearchAsync("poco x8");
+
+        Assert.Equal(2, callCount);
+        var result = Assert.Single(results);
+        Assert.Equal("Poco X8 5G 128 GB", result.ProductName);
+    }
+
+    [Fact]
+    public async Task SearchAsync_DoesNotRetry_WhenFirstAttemptHasResults()
+    {
+        const string json = """
+        {
+          "shopping_results": [
+            {
+              "title": "Apple iPhone 15 128 GB Mavi",
+              "source": "Test Mağaza",
+              "price": "24.423,47 TL",
+              "product_link": "https://example.com/1"
+            }
+          ]
+        }
+        """;
+
+        var callCount = 0;
+        var handler = new FakeHttpMessageHandler(_ =>
+        {
+            callCount++;
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(json) };
+        });
+
+        var provider = new WebSearchPriceProvider("fake-key", "https://serpapi.com/search.json", new HttpClient(handler));
+
+        await provider.SearchAsync("iphone 15");
+
+        Assert.Equal(1, callCount);
+    }
+
+    [Fact]
     public async Task SearchAsync_RequestsTurkishGoogleDomain()
     {
         var handler = new FakeHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)

@@ -17,23 +17,28 @@ public sealed class PriceAggregatorService
 
     public async Task<IReadOnlyList<PriceResult>> SearchAllAsync(string productName)
     {
-        var allResults = new List<PriceResult>();
+        // Sağlayıcılar paralel çalıştırılır — sırayla çalıştırıldığında (eskiden
+        // olduğu gibi) yavaş/yanıt vermeyen tek bir sağlayıcı (örn. Teknosa'nın
+        // bot korumasından dönen istekler) toplam arama süresini gereksiz yere
+        // uzatıyordu.
+        var resultsPerProvider = await Task.WhenAll(_providers.Select(provider => SearchSingleProviderAsync(provider, productName)));
 
-        foreach (var provider in _providers)
-        {
-            try
-            {
-                var results = await provider.SearchAsync(productName);
-                allResults.AddRange(results);
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogWarning(ex, "{Provider} sağlayıcısından sonuç alınamadı", provider.Name);
-            }
-        }
-
-        return allResults
+        return resultsPerProvider
+            .SelectMany(results => results)
             .OrderBy(x => x.TotalPrice)
             .ToList();
+    }
+
+    private async Task<IReadOnlyList<PriceResult>> SearchSingleProviderAsync(IPriceProvider provider, string productName)
+    {
+        try
+        {
+            return await provider.SearchAsync(productName);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "{Provider} sağlayıcısından sonuç alınamadı", provider.Name);
+            return [];
+        }
     }
 }

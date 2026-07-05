@@ -75,17 +75,39 @@ public class ProductMatchingServiceTests
         Assert.Single(filtered);
     }
 
+    [Fact]
+    public void Filter_ExcludesOtherVariants_WhenBaseModelIsAlsoAvailable()
+    {
+        var results = new[]
+        {
+            Result("Apple iPhone 15 128 GB"),
+            Result("Apple iPhone 15 Pro 128 GB"),
+            Result("Apple iPhone 15 Pro Max 256 GB"),
+            Result("Apple iPhone 15 Plus 128 GB")
+        };
+
+        var filtered = _sut.Filter("iphone 15", results);
+
+        var result = Assert.Single(filtered);
+        Assert.Equal("Apple iPhone 15 128 GB", result.ProductName);
+    }
+
     [Theory]
     [InlineData("Apple iPhone 15 Pro 128 GB")]
     [InlineData("Apple iPhone 15 Pro Max 256 GB")]
     [InlineData("Apple iPhone 15 Plus 128 GB")]
-    public void Filter_ExcludesOtherVariants_WhenBaseModelIsRequested(string productName)
+    public void Filter_FallsBackToOtherVariants_WhenBaseModelDoesNotExistAtAll(string productName)
     {
+        // Gerçek bir veri hatasıydı: "Poco X8" piyasada sadece "Poco X8 Pro"
+        // olarak satılıyor, base model hiç yok. Katı varyant eşleşmesi bu
+        // durumda TÜM sonuçları eleyip "bulunamadı" gösteriyordu. Base
+        // varyanta ait tek bir sonuç bile yoksa, kısıtlama gevşetilip mevcut
+        // en yakın varyant gösterilmeli — kartta gerçek başlık zaten yazıyor.
         var results = new[] { Result(productName) };
 
         var filtered = _sut.Filter("iphone 15", results);
 
-        Assert.Empty(filtered);
+        Assert.Single(filtered);
     }
 
     [Fact]
@@ -164,6 +186,23 @@ public class ProductMatchingServiceTests
         var filtered = _sut.Filter("kulaklık", results);
 
         Assert.Single(filtered);
+    }
+
+    [Fact]
+    public void Filter_ReturnsPocoX8ProResults_WhenSearchingPlainPocoX8()
+    {
+        // Canlıda gözlemlenen gerçek bug: "poco x8" araması hep "bulunamadı"
+        // dönüyordu çünkü SerpApi'nin döndürdüğü tüm ilanlar "Poco X8 Pro"
+        // (base model piyasada yok). Bkz. Filter_FallsBackToOtherVariants...
+        var results = new[]
+        {
+            Result("Poco X8 Pro 12/512 Gb"),
+            Result("POCO X8 Pro Max 512 GB 12 GB Ram Siyah")
+        };
+
+        var filtered = _sut.Filter("poco x8", results);
+
+        Assert.Equal(2, filtered.Count);
     }
 
     [Fact]

@@ -211,6 +211,7 @@ api.MapGet("/search", async (
     // (~100/ay) çok hızlı tükenmesin diye.
     var cacheKey = $"search:{ProductMatchingService.Normalize(product)}";
     var cacheMinutes = configuration.GetValue("PriceTracking:LiveSearchCacheMinutes", 15);
+    var emptyResultCacheMinutes = configuration.GetValue("PriceTracking:EmptyResultCacheMinutes", 1);
 
     if (!cache.TryGetValue(cacheKey, out (PriceSearchOutcome Outcome, DateTime GeneratedAt) cached))
     {
@@ -228,7 +229,13 @@ api.MapGet("/search", async (
         var freshOutcome = await pipeline.RunAsync(product, providers, logger, cancellationToken);
         cached = (freshOutcome, DateTime.UtcNow);
 
-        cache.Set(cacheKey, cached, TimeSpan.FromMinutes(cacheMinutes));
+        // Google Shopping aynı sorgu için tutarsız şekilde 0 sonuç dönebiliyor
+        // (bkz. WebSearchPriceProvider'daki no_cache yeniden deneme mantığı) —
+        // bu yüzden boş bir sonucu tam 15 dakika önbelleğe almak, birazdan
+        // gerçekten bulunabilecek bir ürünü kullanıcıya uzun süre "bulunamadı"
+        // olarak göstermeye devam eder. Boş sonuçlar çok daha kısa saklanır.
+        var effectiveCacheMinutes = freshOutcome.Results.Count == 0 ? emptyResultCacheMinutes : cacheMinutes;
+        cache.Set(cacheKey, cached, TimeSpan.FromMinutes(effectiveCacheMinutes));
 
         await historyStore.RecordSnapshotAsync(product, freshOutcome.Results, cancellationToken);
     }
