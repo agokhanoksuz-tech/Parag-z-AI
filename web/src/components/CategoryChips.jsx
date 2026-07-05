@@ -19,13 +19,13 @@ export const CATEGORIES = [
     name: "Elektronik & Cep Telefonu",
     Icon: TechIcon,
     items: [
-      { label: "Cep Telefonu", term: "iphone 15 128gb" },
-      { label: "Tablet", term: "ipad 10. nesil" },
-      { label: "Bilgisayar", term: "macbook air m2" },
-      { label: "Kulaklık", term: "airpods pro" },
-      { label: "Televizyon", term: "samsung 55 inç tv" },
+      { label: "Cep Telefonu", term: "cep telefonu" },
+      { label: "Tablet", term: "tablet" },
+      { label: "Bilgisayar", term: "laptop" },
+      { label: "Kulaklık", term: "kablosuz kulaklık" },
+      { label: "Televizyon", term: "led tv" },
       { label: "Oyun Konsolu", term: "playstation 5" },
-      { label: "Yazıcı", term: "hp yazıcı" },
+      { label: "Yazıcı", term: "yazıcı" },
     ],
   },
   {
@@ -55,7 +55,7 @@ export const CATEGORIES = [
     name: "Saat, Moda & Ayakkabı",
     Icon: WatchIcon,
     items: [
-      { label: "Akıllı Saat", term: "apple watch se" },
+      { label: "Akıllı Saat", term: "akıllı saat" },
       { label: "Kol Saati", term: "kol saati" },
       { label: "Spor Ayakkabı", term: "erkek spor ayakkabı" },
       { label: "Güneş Gözlüğü", term: "güneş gözlüğü" },
