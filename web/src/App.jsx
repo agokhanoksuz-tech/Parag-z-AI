@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import { api } from "./api";
 import CategorySidebarTree from "./components/CategorySidebarTree";
@@ -223,8 +223,6 @@ export default function App() {
   const [selectedStores, setSelectedStores] = useState([]);
   const [showFavorites, setShowFavorites] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [showHeaderSearch, setShowHeaderSearch] = useState(false);
-  const heroRef = useRef(null);
 
   useEffect(() => {
     (async () => {
@@ -244,22 +242,6 @@ export default function App() {
         setTrending([]);
       }
     })();
-  }, []);
-
-  // Header'daki arama çubuğu, sayfanın en üstündeki hero alanı görünür
-  // olduğu sürece gizli kalır; hero yukarı doğru ekrandan çıkınca (kullanıcı
-  // aşağı kaydırınca) görünür hale gelir.
-  useEffect(() => {
-    const node = heroRef.current;
-    if (!node) return;
-
-    const observer = new IntersectionObserver(([entry]) => setShowHeaderSearch(!entry.isIntersecting), {
-      threshold: 0,
-      rootMargin: "-72px 0px 0px 0px",
-    });
-
-    observer.observe(node);
-    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -479,7 +461,7 @@ export default function App() {
               <Logo />z AI
             </button>
 
-            <div className={`header-search${showHeaderSearch ? " is-visible" : ""}`}>
+            <div className="header-search">
               <input
                 className="header-search-input"
                 value={product}
@@ -553,7 +535,7 @@ export default function App() {
         </div>
       )}
 
-      <div className="hero" ref={heroRef}>
+      <div className="hero">
         <p className="eyebrow">Türkiye'nin akıllı fiyat karşılaştırma platformu</p>
         <p className="hero-lead">Bir ürün adı yaz, onlarca mağazayı aynı anda tara, en ucuz fiyatı bul.</p>
         <TrustFeatures />
