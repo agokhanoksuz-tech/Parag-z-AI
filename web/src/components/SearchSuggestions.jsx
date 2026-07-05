@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
+import { BRANDS } from "../data/brands";
 import { CATEGORIES } from "../data/categories";
 
 function matchesQuery(text, normalizedQuery) {
   return text.toLocaleLowerCase("tr-TR").includes(normalizedQuery);
+}
+
+function getBrandMatches(query) {
+  const normalizedQuery = query.toLocaleLowerCase("tr-TR");
+
+  return BRANDS.filter((brand) => brand.toLocaleLowerCase("tr-TR").startsWith(normalizedQuery)).slice(0, 6);
 }
 
 function getCategoryMatches(query) {
@@ -51,12 +58,24 @@ export default function SearchSuggestions({ query, onSelect }) {
   const trimmed = query.trim();
   if (trimmed.length < 2) return null;
 
+  const brandMatches = getBrandMatches(trimmed);
   const categoryMatches = getCategoryMatches(trimmed);
 
-  if (categoryMatches.length === 0 && products.length === 0) return null;
+  if (brandMatches.length === 0 && categoryMatches.length === 0 && products.length === 0) return null;
 
   return (
     <div className="search-suggestions" onMouseDown={(e) => e.preventDefault()}>
+      {brandMatches.length > 0 && (
+        <div className="search-suggestions-section">
+          <p className="search-suggestions-label">Markalar</p>
+          {brandMatches.map((brand) => (
+            <button key={brand} type="button" className="search-suggestion-row" onClick={() => onSelect(brand)}>
+              <span className="search-suggestion-title">{brand}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {categoryMatches.length > 0 && (
         <div className="search-suggestions-section">
           <p className="search-suggestions-label">Kategoriler</p>
