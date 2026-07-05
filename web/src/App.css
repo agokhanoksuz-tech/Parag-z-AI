@@ -400,6 +400,8 @@
 }
 
 .search-suggestion-title {
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-h);
@@ -590,9 +592,38 @@
   min-width: 0;
 }
 
+.mobile-filter-toggle {
+  display: none;
+}
+
 @media (max-width: 900px) {
   .page-layout {
     grid-template-columns: 1fr;
+  }
+
+  /* Mobilde filtre/kategori paneli varsayılan olarak kapalı — açıkta
+     bırakılırsa header'ın hemen altında koca bir kontrol duvarı oluşup
+     gerçek içeriği (ürünler/sonuçlar) aşağı itiyordu. */
+  .mobile-filter-toggle {
+    display: block;
+    width: 100%;
+    margin: 16px 0;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--code-bg);
+    color: var(--text-h);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .search-filters {
+    display: none;
+  }
+
+  .search-filters.is-open {
+    display: block;
   }
 }
 
@@ -1630,6 +1661,7 @@
 
 .detail-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
   margin-top: 6px;
@@ -1667,6 +1699,11 @@
 
   .header-search {
     order: 3;
+    /* .site-header flex-direction: column oluyor — bu durumda flex-basis
+       ana eksen artık dikey olduğu için "360px" bir genişlik değil yükseklik
+       ipucu haline geliyordu, arama kutusunun altında boş alan bırakıyordu. */
+    flex: none;
+    width: 100%;
     max-width: none;
   }
 

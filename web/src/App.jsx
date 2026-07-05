@@ -225,6 +225,7 @@ export default function App() {
   const [showFavorites, setShowFavorites] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -562,8 +563,16 @@ export default function App() {
 
       <StoreStrip />
 
+      <button
+        type="button"
+        className="mobile-filter-toggle"
+        onClick={() => setShowMobileFilters((v) => !v)}
+      >
+        {showMobileFilters ? "Filtreleri gizle ✕" : "Kategoriler & Filtreler"}
+      </button>
+
       <div className="page-layout">
-        <aside className="search-filters">
+        <aside className={`search-filters${showMobileFilters ? " is-open" : ""}`}>
           <h3>Gelişmiş Filtreler &amp; Navigasyon</h3>
 
           <div className="filter-group">
