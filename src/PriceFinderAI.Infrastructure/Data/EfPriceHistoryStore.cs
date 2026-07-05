@@ -108,15 +108,24 @@ public sealed class EfPriceHistoryStore(AppDbContext db, int maxTrackedProducts)
 
     public async Task<IReadOnlyList<TrendingProduct>> GetTrendingAsync(int count, CancellationToken cancellationToken = default)
     {
-        var trackedProducts = await db.TrackedProducts
+        // "En son kontrol edilenler" sırasıyla deterministik seçim yapılınca,
+        // takip edilen ürün havuzu küçük olduğu sürece (henüz az kullanıcı
+        // arattıysa) sayfa her yenilendiğinde birebir aynı ürünler
+        // görünüyordu. Zaten taranmış, gerçek veriye sahip ürünler arasından
+        // rastgele bir alt küme seçilir — hem sayfa yenilemede hem gün gün
+        // gerçek çeşitlilik sağlar, uydurma bir veri eklenmez.
+        var eligible = await db.TrackedProducts
             .Where(t => t.LastCheckedAt != null)
-            .OrderByDescending(t => t.LastCheckedAt)
-            .Take(count)
             .ToListAsync(cancellationToken);
+
+        var selected = eligible
+            .OrderBy(_ => Random.Shared.Next())
+            .Take(count)
+            .ToList();
 
         var trending = new List<TrendingProduct>();
 
-        foreach (var tracked in trackedProducts)
+        foreach (var tracked in selected)
         {
             // Client-side sıralama (bkz. GetLatestPricesAsync'teki not) — SQLite'ın
             // decimal-as-text sütunları için EF_DECIMAL collation'ı bazı değer
