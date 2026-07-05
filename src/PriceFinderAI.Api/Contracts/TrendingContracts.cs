@@ -6,4 +6,6 @@ public sealed record TrendingItemDto(
     string StoreName,
     decimal Price,
     string? ImageUrl,
-    string Url);
+    string Url,
+    double? Rating,
+    int? ReviewCount);

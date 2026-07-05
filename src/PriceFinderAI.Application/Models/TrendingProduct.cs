@@ -6,4 +6,6 @@ public sealed record TrendingProduct(
     string StoreName,
     decimal Price,
     string? ImageUrl,
-    string Url);
+    string Url,
+    double? Rating = null,
+    int? ReviewCount = null);

@@ -9,5 +9,7 @@ public sealed class PriceSnapshot
     public decimal Price { get; set; }
     public required string Url { get; set; }
     public string? ImageUrl { get; set; }
+    public double? Rating { get; set; }
+    public int? ReviewCount { get; set; }
     public DateTime CheckedAt { get; set; }
 }

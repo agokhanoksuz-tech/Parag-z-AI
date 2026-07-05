@@ -4,16 +4,19 @@ import { api } from "./api";
 import CategoryChips from "./components/CategoryChips";
 import CategorySidebarTree from "./components/CategorySidebarTree";
 import FavoriteButton from "./components/FavoriteButton";
+import FeaturedProductGrid from "./components/FeaturedProductGrid";
 import Footer from "./components/Footer";
 import HowItWorks from "./components/HowItWorks";
+import { BellIcon } from "./components/icons";
 import LoginForm from "./components/LoginForm";
 import Logo from "./components/Logo";
+import PriceAlarmButton from "./components/PriceAlarmButton";
 import PriceHistoryChart from "./components/PriceHistoryChart";
 import PriceRangeBar from "./components/PriceRangeBar";
 import PriceRangeSlider from "./components/PriceRangeSlider";
 import QuickCategoryCapsules from "./components/QuickCategoryCapsules";
+import RatingStars from "./components/RatingStars";
 import RegisterForm from "./components/RegisterForm";
-import SidePanel from "./components/SidePanel";
 import { StoreStrip, TrustFeatures } from "./components/TrustBar";
 import TrendingGrid from "./components/TrendingGrid";
 import ValueProps from "./components/ValueProps";
@@ -52,37 +55,6 @@ function CheapestBadge() {
 
 function LowestPriceBadge() {
   return <span className="badge badge-lowest">30 Günün En Düşüğü</span>;
-}
-
-function StarIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M12 2l2.9 6.6 7.1.6-5.4 4.8 1.6 7-6.2-3.9-6.2 3.9 1.6-7-5.4-4.8 7.1-.6z" />
-    </svg>
-  );
-}
-
-function RatingStars({ rating, reviewCount }) {
-  if (rating == null) return null;
-
-  return (
-    <span className="rating-stars">
-      <StarIcon />
-      {rating.toFixed(1)}
-      <span className="rating-count">({reviewCount.toLocaleString("tr-TR")})</span>
-    </span>
-  );
-}
-
-function BellIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"
-        fill="currentColor"
-      />
-    </svg>
-  );
 }
 
 function ProductImage({ item, isFavorited, onToggleFavorite }) {
@@ -161,49 +133,6 @@ function GoToProductLink({ item }) {
     <a href={item.url} onClick={handleClick} className="card-link">
       {loading ? "Yönlendiriliyor..." : "Ürüne git →"}
     </a>
-  );
-}
-
-function PriceAlarmButton({ item, favoriteId, targetPrice, onSetAlarm }) {
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(targetPrice ?? "");
-  const [saving, setSaving] = useState(false);
-
-  async function handleSave() {
-    setSaving(true);
-    try {
-      const parsed = value === "" ? null : Number(value);
-      const success = await onSetAlarm(item, parsed);
-      if (success) setOpen(false);
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <div className="price-alarm">
-      <button type="button" className="price-alarm-toggle" onClick={() => setOpen((o) => !o)}>
-        <BellIcon />
-        {favoriteId && targetPrice != null
-          ? `Alarm: ${targetPrice.toLocaleString("tr-TR")} TL`
-          : "Fiyat Alarmı"}
-      </button>
-      {open && (
-        <div className="price-alarm-popover">
-          <input
-            type="number"
-            min="1"
-            step="0.01"
-            placeholder="Hedef fiyat (TL)"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-          />
-          <button type="button" className="btn-secondary" onClick={handleSave} disabled={saving}>
-            {saving ? "Kaydediliyor..." : "Kaydet"}
-          </button>
-        </div>
-      )}
-    </div>
   );
 }
 
@@ -518,7 +447,7 @@ export default function App() {
     return favorites.find((f) => f.storeName === item.store && f.url === item.url)?.targetPrice ?? null;
   }
 
-  async function handleSetPriceAlarm(item, targetPrice) {
+  async function handleSetPriceAlarm(item, targetPrice, query) {
     if (!user) {
       setAuthPanel("login");
       return false;
@@ -532,7 +461,7 @@ export default function App() {
         setFavorites((prev) => prev.map((f) => (f.id === existingId ? { ...f, targetPrice } : f)));
       } else {
         const created = await api.post("/favorites", {
-          query: data.searchedProduct,
+          query: query ?? data?.searchedProduct,
           storeName: item.store,
           productName: item.product,
           url: item.url,
@@ -547,7 +476,7 @@ export default function App() {
     }
   }
 
-  async function handleToggleFavorite(item) {
+  async function handleToggleFavorite(item, query) {
     if (!user) {
       setAuthPanel("login");
       return;
@@ -561,7 +490,7 @@ export default function App() {
         setFavorites((prev) => prev.filter((f) => f.id !== existingId));
       } else {
         const created = await api.post("/favorites", {
-          query: data.searchedProduct,
+          query: query ?? data?.searchedProduct,
           storeName: item.store,
           productName: item.product,
           url: item.url,
@@ -718,6 +647,86 @@ export default function App() {
       <StoreStrip />
 
       <div className="page-layout">
+        <aside className="search-filters">
+          <h3>Gelişmiş Filtreler &amp; Navigasyon</h3>
+
+          <div className="filter-group">
+            <label className="filter-label">Kategoriler</label>
+            <CategorySidebarTree onSelect={handleSuggestionClick} />
+          </div>
+
+          {data && data.results.length > 0 && (
+            <>
+              <div className="filter-group">
+                <label className="filter-label">Fiyat Aralığı (TL)</label>
+                <PriceRangeSlider
+                  min={priceBounds.min}
+                  max={priceBounds.max}
+                  valueMin={priceMin}
+                  valueMax={priceMax}
+                  onChangeMin={setPriceMin}
+                  onChangeMax={setPriceMax}
+                />
+                <div className="price-range-labels">
+                  <span>{(priceMin ?? priceBounds.min).toLocaleString("tr-TR")} TL</span>
+                  <span>{(priceMax ?? priceBounds.max).toLocaleString("tr-TR")} TL</span>
+                </div>
+              </div>
+
+              <div className="filter-group">
+                <label className="filter-label">Durum</label>
+                <div className="filter-radio-group">
+                  <label className="filter-radio">
+                    <input
+                      type="radio"
+                      name="condition"
+                      checked={condition === "all"}
+                      onChange={() => setCondition("all")}
+                    />
+                    Tümü
+                  </label>
+                  <label className="filter-radio">
+                    <input
+                      type="radio"
+                      name="condition"
+                      checked={condition === "new"}
+                      onChange={() => setCondition("new")}
+                    />
+                    Sadece yeni
+                  </label>
+                  <label className="filter-radio">
+                    <input
+                      type="radio"
+                      name="condition"
+                      checked={condition === "refurbished"}
+                      onChange={() => setCondition("refurbished")}
+                    />
+                    Sadece yenilenmiş
+                  </label>
+                </div>
+              </div>
+
+              {storeEntries.length > 0 && (
+                <div className="filter-group">
+                  <label className="filter-label">Mağaza</label>
+                  <div className="filter-checkbox-list">
+                    {storeEntries.map(([store, count]) => (
+                      <label className="filter-checkbox" key={store}>
+                        <input
+                          type="checkbox"
+                          checked={selectedStores.includes(store)}
+                          onChange={() => toggleStore(store)}
+                        />
+                        {store} <span className="filter-count">({count})</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </aside>
+
         <div className="main-column">
           {showFavorites ? (
             <>
@@ -741,8 +750,6 @@ export default function App() {
 
               {!hasSearched && !loading && !error && (
                 <>
-                  <QuickCategoryCapsules onSelect={handleSuggestionClick} />
-
                   {user && recentlyViewed.length > 0 && (
                     <TrendingGrid
                       items={recentlyViewed}
@@ -757,12 +764,28 @@ export default function App() {
                   {trending.length > 0 && (
                     <TrendingGrid
                       items={trending}
+                      title="Günün En İyi Fiyat Düşüşleri"
                       onSelect={(query) => {
                         setProduct(query);
                         search(sort, query);
                       }}
                     />
                   )}
+
+                  <QuickCategoryCapsules onSelect={handleSuggestionClick} />
+
+                  <FeaturedProductGrid
+                    items={trending}
+                    isFavorited={isFavorited}
+                    onToggleFavorite={handleToggleFavorite}
+                    favoriteIdFor={favoriteIdFor}
+                    targetPriceFor={targetPriceFor}
+                    onSetPriceAlarm={handleSetPriceAlarm}
+                    onSelect={(query) => {
+                      setProduct(query);
+                      search(sort, query);
+                    }}
+                  />
 
                   <HowItWorks />
                   <ValueProps />
@@ -776,138 +799,60 @@ export default function App() {
                       <p>Bu ürün için uygun bir sonuç bulunamadı.</p>
                     </div>
                   ) : (
-                    <div className="search-layout">
-                      <aside className="search-filters">
-                        <h3>Gelişmiş Filtreler</h3>
-
-                        <div className="filter-group">
-                          <label className="filter-label">Kategoriler</label>
-                          <CategorySidebarTree onSelect={handleSuggestionClick} />
-                        </div>
-
-                        <div className="filter-group">
-                          <label className="filter-label">Fiyat Aralığı (TL)</label>
-                          <PriceRangeSlider
-                            min={priceBounds.min}
-                            max={priceBounds.max}
-                            valueMin={priceMin}
-                            valueMax={priceMax}
-                            onChangeMin={setPriceMin}
-                            onChangeMax={setPriceMax}
-                          />
-                          <div className="price-range-labels">
-                            <span>{(priceMin ?? priceBounds.min).toLocaleString("tr-TR")} TL</span>
-                            <span>{(priceMax ?? priceBounds.max).toLocaleString("tr-TR")} TL</span>
-                          </div>
-                        </div>
-
-                        <div className="filter-group">
-                          <label className="filter-label">Durum</label>
-                          <div className="filter-radio-group">
-                            <label className="filter-radio">
-                              <input
-                                type="radio"
-                                name="condition"
-                                checked={condition === "all"}
-                                onChange={() => setCondition("all")}
-                              />
-                              Tümü
-                            </label>
-                            <label className="filter-radio">
-                              <input
-                                type="radio"
-                                name="condition"
-                                checked={condition === "new"}
-                                onChange={() => setCondition("new")}
-                              />
-                              Sadece yeni
-                            </label>
-                            <label className="filter-radio">
-                              <input
-                                type="radio"
-                                name="condition"
-                                checked={condition === "refurbished"}
-                                onChange={() => setCondition("refurbished")}
-                              />
-                              Sadece yenilenmiş
-                            </label>
-                          </div>
-                        </div>
-
-                        {storeEntries.length > 0 && (
-                          <div className="filter-group">
-                            <label className="filter-label">Mağaza</label>
-                            <div className="filter-checkbox-list">
-                              {storeEntries.map(([store, count]) => (
-                                <label className="filter-checkbox" key={store}>
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedStores.includes(store)}
-                                    onChange={() => toggleStore(store)}
-                                  />
-                                  {store} <span className="filter-count">({count})</span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
+                    <div className="search-results">
+                      <p className="result-count">
+                        {filteredResults.length} sonuç bulundu
+                        {data.generatedAt && (
+                          <span className="result-freshness">
+                            {" "}
+                            · Son güncelleme: {formatRelativeTime(data.generatedAt)}
+                          </span>
                         )}
-                      </aside>
+                      </p>
 
-                      <div className="search-results">
-                        <p className="result-count">
-                          {filteredResults.length} sonuç bulundu
-                          {data.generatedAt && (
-                            <span className="result-freshness">
-                              {" "}
-                              · Son güncelleme: {formatRelativeTime(data.generatedAt)}
-                            </span>
+                      {filteredResults.length === 0 ? (
+                        <div className="empty-state">
+                          <p>Filtrelere uyan sonuç yok. Filtreleri genişletmeyi dene.</p>
+                        </div>
+                      ) : (
+                        <>
+                          {filteredCheapest && (
+                            <ResultCard
+                              item={filteredCheapest}
+                              highlight
+                              isFavorited={isFavorited(filteredCheapest)}
+                              onToggleFavorite={handleToggleFavorite}
+                              searchedProduct={data.searchedProduct}
+                              favoriteId={favoriteIdFor(filteredCheapest)}
+                              targetPrice={targetPriceFor(filteredCheapest)}
+                              onSetPriceAlarm={handleSetPriceAlarm}
+                              priceRangeMin={priceBounds.min}
+                              priceRangeMax={priceBounds.max}
+                            />
                           )}
-                        </p>
 
-                        {filteredResults.length === 0 ? (
-                          <div className="empty-state">
-                            <p>Filtrelere uyan sonuç yok. Filtreleri genişletmeyi dene.</p>
-                          </div>
-                        ) : (
-                          <>
-                            {filteredCheapest && (
-                              <ResultCard
-                                item={filteredCheapest}
-                                highlight
-                                isFavorited={isFavorited(filteredCheapest)}
-                                onToggleFavorite={handleToggleFavorite}
-                                searchedProduct={data.searchedProduct}
-                                favoriteId={favoriteIdFor(filteredCheapest)}
-                                targetPrice={targetPriceFor(filteredCheapest)}
-                                onSetPriceAlarm={handleSetPriceAlarm}
-                                priceRangeMin={priceBounds.min}
-                                priceRangeMax={priceBounds.max}
-                              />
-                            )}
-
-                            {otherResults.length > 0 && (
-                              <>
-                                <h2 className="section-title">Diğer Sonuçlar</h2>
-                                <div className="results-list">
-                                  {otherResults.map((item, i) => (
-                                    <ResultCard
-                                      key={i}
-                                      item={item}
-                                      isFavorited={isFavorited(item)}
-                                      onToggleFavorite={handleToggleFavorite}
-                                      favoriteId={favoriteIdFor(item)}
-                                      targetPrice={targetPriceFor(item)}
-                                      onSetPriceAlarm={handleSetPriceAlarm}
-                                      priceRangeMin={priceBounds.min}
-                                      priceRangeMax={priceBounds.max}
-                                    />
-                                  ))}
-                                </div>
-                              </>
-                            )}
-                          </>
-                        )}
-                      </div>
+                          {otherResults.length > 0 && (
+                            <>
+                              <h2 className="section-title">Diğer Sonuçlar</h2>
+                              <div className="results-list">
+                                {otherResults.map((item, i) => (
+                                  <ResultCard
+                                    key={i}
+                                    item={item}
+                                    isFavorited={isFavorited(item)}
+                                    onToggleFavorite={handleToggleFavorite}
+                                    favoriteId={favoriteIdFor(item)}
+                                    targetPrice={targetPriceFor(item)}
+                                    onSetPriceAlarm={handleSetPriceAlarm}
+                                    priceRangeMin={priceBounds.min}
+                                    priceRangeMax={priceBounds.max}
+                                  />
+                                ))}
+                              </div>
+                            </>
+                          )}
+                        </>
+                      )}
                     </div>
                   )}
                 </>
@@ -915,8 +860,6 @@ export default function App() {
             </>
           )}
         </div>
-
-        <SidePanel user={user} favorites={favorites} trending={trending} onSelect={handleSuggestionClick} />
       </div>
 
       <Footer />

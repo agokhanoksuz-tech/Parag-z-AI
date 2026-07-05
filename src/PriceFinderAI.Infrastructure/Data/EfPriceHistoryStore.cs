@@ -52,6 +52,8 @@ public sealed class EfPriceHistoryStore(AppDbContext db, int maxTrackedProducts)
                 Price = result.TotalPrice,
                 Url = result.ProductUrl,
                 ImageUrl = result.ImageUrl,
+                Rating = result.Rating,
+                ReviewCount = result.ReviewCount,
                 CheckedAt = now
             });
         }
@@ -116,10 +118,15 @@ public sealed class EfPriceHistoryStore(AppDbContext db, int maxTrackedProducts)
 
         foreach (var tracked in trackedProducts)
         {
-            var cheapest = await db.PriceSnapshots
+            // Client-side sıralama (bkz. GetLatestPricesAsync'teki not) — SQLite'ın
+            // decimal-as-text sütunları için EF_DECIMAL collation'ı bazı değer
+            // kombinasyonlarında yanlış sıra üretiyor, en ucuzu C# tarafında seçmek
+            // güvenilir tek yol.
+            var snapshots = await db.PriceSnapshots
                 .Where(s => s.TrackedProductId == tracked.Id)
-                .OrderBy(s => s.Price)
-                .FirstOrDefaultAsync(cancellationToken);
+                .ToListAsync(cancellationToken);
+
+            var cheapest = snapshots.OrderBy(s => s.Price).FirstOrDefault();
 
             if (cheapest is not null)
             {
@@ -129,7 +136,9 @@ public sealed class EfPriceHistoryStore(AppDbContext db, int maxTrackedProducts)
                     cheapest.StoreName,
                     cheapest.Price,
                     cheapest.ImageUrl,
-                    cheapest.Url));
+                    cheapest.Url,
+                    cheapest.Rating,
+                    cheapest.ReviewCount));
             }
         }
 

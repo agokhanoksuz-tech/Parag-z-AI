@@ -132,7 +132,7 @@ api.MapGet("/trending", async (IPriceHistoryStore historyStore, CancellationToke
     var trending = await historyStore.GetTrendingAsync(12, cancellationToken);
 
     var dtos = trending
-        .Select(t => new TrendingItemDto(t.Query, t.ProductName, t.StoreName, t.Price, t.ImageUrl, t.Url))
+        .Select(t => new TrendingItemDto(t.Query, t.ProductName, t.StoreName, t.Price, t.ImageUrl, t.Url, t.Rating, t.ReviewCount))
         .ToList();
 
     return Results.Ok(dtos);
@@ -149,7 +149,7 @@ api.MapGet("/recently-viewed", async (
     var viewed = await viewHistoryStore.GetRecentlyViewedAsync(userId, 8, cancellationToken);
 
     var dtos = viewed
-        .Select(t => new TrendingItemDto(t.Query, t.ProductName, t.StoreName, t.Price, t.ImageUrl, t.Url))
+        .Select(t => new TrendingItemDto(t.Query, t.ProductName, t.StoreName, t.Price, t.ImageUrl, t.Url, t.Rating, t.ReviewCount))
         .ToList();
 
     return Results.Ok(dtos);
