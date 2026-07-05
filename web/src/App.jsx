@@ -615,11 +615,7 @@ export default function App() {
 
       <div className="hero">
         <p className="eyebrow">Türkiye'nin akıllı fiyat karşılaştırma platformu</p>
-        <h1 className="hero-title">
-          Parag
-          <Logo />z AI
-        </h1>
-        <p>Bir ürün adı yaz, onlarca mağazayı aynı anda tara, en ucuz fiyatı bul.</p>
+        <p className="hero-lead">Bir ürün adı yaz, onlarca mağazayı aynı anda tara, en ucuz fiyatı bul.</p>
 
         <div className="search-row">
           <input
