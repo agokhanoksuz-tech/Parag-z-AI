@@ -321,18 +321,23 @@
 .store-strip-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 22px;
+  align-items: center;
   justify-content: center;
 }
 
-.store-chip {
-  padding: 5px 14px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--code-bg);
-  color: var(--text);
-  font-size: 12px;
-  font-weight: 500;
+.store-strip-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border-radius: 6px;
+  filter: grayscale(1) brightness(1.6) opacity(0.5);
+  transition:
+    filter 0.15s ease;
+}
+
+.store-strip-logo:hover {
+  filter: grayscale(0) brightness(1) opacity(1);
 }
 
 .header-search {
@@ -341,6 +346,16 @@
   gap: 6px;
   flex: 1 1 360px;
   max-width: 480px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.header-search.is-visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .header-search-input {
@@ -1226,8 +1241,9 @@
 }
 
 .card-price {
-  font-size: 21px;
-  font-weight: 700;
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
   color: var(--text-h);
   margin: 2px 0 0;
 }

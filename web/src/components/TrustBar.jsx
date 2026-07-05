@@ -7,7 +7,15 @@ const FEATURES = [
   { Icon: MailIcon, label: "Fiyat düşünce e-posta" },
 ];
 
-const STORES = ["Teknosa", "Hepsiburada", "Trendyol", "Vatan Bilgisayar", "MediaMarkt", "Amazon", "N11"];
+const STORES = [
+  { name: "Teknosa", logo: "/logos/teknosa.png" },
+  { name: "Hepsiburada", logo: "/logos/hepsiburada.png" },
+  { name: "Trendyol", logo: "/logos/trendyol.jpg" },
+  { name: "Vatan Bilgisayar", logo: "/logos/vatan.png" },
+  { name: "MediaMarkt", logo: "/logos/mediamarkt.png" },
+  { name: "Amazon", logo: "/logos/amazon.png" },
+  { name: "N11", logo: "/logos/n11.png" },
+];
 
 export function TrustFeatures() {
   return (
@@ -27,10 +35,8 @@ export function StoreStrip() {
     <div className="store-strip">
       <span className="store-strip-label">Karşılaştırdığımız mağazalardan bazıları</span>
       <div className="store-strip-list">
-        {STORES.map((store) => (
-          <span key={store} className="store-chip">
-            {store}
-          </span>
+        {STORES.map(({ name, logo }) => (
+          <img key={name} className="store-strip-logo" src={logo} alt={name} title={name} loading="lazy" />
         ))}
       </div>
     </div>
