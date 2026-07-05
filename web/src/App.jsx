@@ -2,137 +2,26 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import { api } from "./api";
 import CategorySidebarTree from "./components/CategorySidebarTree";
-import FavoriteButton from "./components/FavoriteButton";
 import FeaturedProductGrid from "./components/FeaturedProductGrid";
 import Footer from "./components/Footer";
+import GoToProductLink from "./components/GoToProductLink";
 import HowItWorks from "./components/HowItWorks";
-import { BellIcon } from "./components/icons";
 import LoginForm from "./components/LoginForm";
 import Logo from "./components/Logo";
 import PriceAlarmButton from "./components/PriceAlarmButton";
 import PriceHistoryChart from "./components/PriceHistoryChart";
 import PriceRangeBar from "./components/PriceRangeBar";
 import PriceRangeSlider from "./components/PriceRangeSlider";
+import ProductDetailView from "./components/ProductDetailView";
+import ProductImage from "./components/ProductImage";
 import RatingStars from "./components/RatingStars";
 import RegisterForm from "./components/RegisterForm";
+import { CheapestBadge, LowestPriceBadge, RefurbishedBadge, TrustBadge } from "./components/ResultBadges";
+import StoreLine from "./components/StoreLine";
 import { StoreStrip, TrustFeatures } from "./components/TrustBar";
 import TrendingGrid from "./components/TrendingGrid";
 import ValueProps from "./components/ValueProps";
-
-function formatRelativeTime(isoString) {
-  const diffMs = Date.now() - new Date(isoString).getTime();
-  const minutes = Math.round(diffMs / 60000);
-
-  if (minutes < 1) return "az önce";
-  if (minutes < 60) return `${minutes} dakika önce`;
-
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours} saat önce`;
-
-  const days = Math.round(hours / 24);
-  return `${days} gün önce`;
-}
-
-function TrustBadge({ score }) {
-  const isVerified = score >= 4;
-
-  return (
-    <span className={`badge ${isVerified ? "badge-trust-high" : "badge-trust-low"}`}>
-      Güven {score.toFixed(1)}/5
-    </span>
-  );
-}
-
-function RefurbishedBadge() {
-  return <span className="badge badge-refurbished">Yenilenmiş / İkinci El</span>;
-}
-
-function CheapestBadge() {
-  return <span className="badge badge-cheapest">En Ucuz</span>;
-}
-
-function LowestPriceBadge() {
-  return <span className="badge badge-lowest">30 Günün En Düşüğü</span>;
-}
-
-function ProductImage({ item, isFavorited, onToggleFavorite }) {
-  const [imageFailed, setImageFailed] = useState(false);
-
-  return (
-    <div className="card-image-box">
-      {item.imageUrl && !imageFailed ? (
-        <img
-          className="card-image"
-          src={item.imageUrl}
-          alt=""
-          loading="lazy"
-          onError={() => setImageFailed(true)}
-        />
-      ) : (
-        <div className="card-image-placeholder">{item.store.charAt(0).toUpperCase()}</div>
-      )}
-      <FavoriteButton isFavorited={isFavorited} onClick={() => onToggleFavorite(item)} />
-      <span className="tracking-badge" title="Fiyat geçmişi takibe alındı">
-        <BellIcon />
-      </span>
-    </div>
-  );
-}
-
-function StoreLine({ item }) {
-  const [iconFailed, setIconFailed] = useState(false);
-
-  return (
-    <p className="card-store">
-      {item.storeIconUrl && !iconFailed && (
-        <img
-          className="card-store-icon"
-          src={item.storeIconUrl}
-          alt=""
-          loading="lazy"
-          onError={() => setIconFailed(true)}
-        />
-      )}
-      {item.store}
-    </p>
-  );
-}
-
-function GoToProductLink({ item }) {
-  const [loading, setLoading] = useState(false);
-
-  if (!item.immersiveProductToken) {
-    return (
-      <a href={item.url} target="_blank" rel="noreferrer" className="card-link">
-        Ürüne git →
-      </a>
-    );
-  }
-
-  async function handleClick(e) {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const resolved = await api.get(
-        `/product-link?token=${encodeURIComponent(item.immersiveProductToken)}&store=${encodeURIComponent(item.store)}`
-      );
-      window.open(resolved.url, "_blank", "noopener,noreferrer");
-    } catch {
-      // Doğrudan mağaza linki çözülemedi (örn. eşleşme bulunamadı) —
-      // Google Shopping sayfasına düşmek hiç açılmamaktan iyidir.
-      window.open(item.url, "_blank", "noopener,noreferrer");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <a href={item.url} onClick={handleClick} className="card-link">
-      {loading ? "Yönlendiriliyor..." : "Ürüne git →"}
-    </a>
-  );
-}
+import { formatRelativeTime } from "./utils/time";
 
 function ResultCard({
   item,
@@ -145,10 +34,11 @@ function ResultCard({
   onSetPriceAlarm,
   priceRangeMin,
   priceRangeMax,
+  onOpenDetail,
 }) {
   if (highlight) {
     return (
-      <div className="hero-card">
+      <div className="hero-card card-clickable" onClick={() => onOpenDetail(item)}>
         <ProductImage item={item} isFavorited={isFavorited} onToggleFavorite={onToggleFavorite} />
 
         <div className="card-body">
@@ -190,7 +80,7 @@ function ResultCard({
   }
 
   return (
-    <div className="result-row">
+    <div className="result-row card-clickable" onClick={() => onOpenDetail(item)}>
       <ProductImage item={item} isFavorited={isFavorited} onToggleFavorite={onToggleFavorite} />
 
       <div className="row-main">
@@ -332,6 +222,7 @@ export default function App() {
   const [condition, setCondition] = useState("all"); // all | new | refurbished
   const [selectedStores, setSelectedStores] = useState([]);
   const [showFavorites, setShowFavorites] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -381,6 +272,7 @@ export default function App() {
     if (!term.trim()) return;
 
     setShowFavorites(false);
+    setSelectedProduct(null);
     setLoading(true);
     setError("");
     setHasSearched(true);
@@ -416,9 +308,19 @@ export default function App() {
 
   function handleGoHome() {
     setShowFavorites(false);
+    setSelectedProduct(null);
     setHasSearched(false);
     setData(null);
     setError("");
+  }
+
+  function handleOpenDetail(item) {
+    setSelectedProduct(item);
+    window.scrollTo(0, 0);
+  }
+
+  function handleCloseDetail() {
+    setSelectedProduct(null);
   }
 
   async function handleLogout() {
@@ -562,7 +464,14 @@ export default function App() {
             <nav className="header-nav">
               {user ? (
                 <>
-                  <button type="button" className="nav-link" onClick={() => setShowFavorites(true)}>
+                  <button
+                    type="button"
+                    className="nav-link"
+                    onClick={() => {
+                      setShowFavorites(true);
+                      setSelectedProduct(null);
+                    }}
+                  >
                     Favorilerim{favorites.length > 0 ? ` (${favorites.length})` : ""}
                   </button>
                   <span className="nav-user">{user.email}</span>
@@ -723,7 +632,18 @@ export default function App() {
         </aside>
 
         <div className="main-column">
-          {showFavorites ? (
+          {selectedProduct ? (
+            <ProductDetailView
+              data={data}
+              selectedItem={selectedProduct}
+              isFavorited={isFavorited}
+              favoriteIdFor={favoriteIdFor}
+              targetPriceFor={targetPriceFor}
+              onToggleFavorite={handleToggleFavorite}
+              onSetPriceAlarm={handleSetPriceAlarm}
+              onBack={handleCloseDetail}
+            />
+          ) : showFavorites ? (
             <>
               <h2 className="section-title">Favorilerim</h2>
               <FavoritesView
@@ -821,6 +741,7 @@ export default function App() {
                               onSetPriceAlarm={handleSetPriceAlarm}
                               priceRangeMin={priceBounds.min}
                               priceRangeMax={priceBounds.max}
+                              onOpenDetail={handleOpenDetail}
                             />
                           )}
 
@@ -839,6 +760,7 @@ export default function App() {
                                     onSetPriceAlarm={handleSetPriceAlarm}
                                     priceRangeMin={priceBounds.min}
                                     priceRangeMax={priceBounds.max}
+                                    onOpenDetail={handleOpenDetail}
                                   />
                                 ))}
                               </div>

@@ -18,7 +18,7 @@ export default function PriceAlarmButton({ item, favoriteId, targetPrice, onSetA
   }
 
   return (
-    <div className="price-alarm">
+    <div className="price-alarm" onClick={(e) => e.stopPropagation()}>
       <button type="button" className="price-alarm-toggle" onClick={() => setOpen((o) => !o)}>
         <BellIcon />
         {favoriteId && targetPrice != null

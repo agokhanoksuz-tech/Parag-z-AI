@@ -950,6 +950,10 @@
     border-color 0.15s ease;
 }
 
+.card-clickable {
+  cursor: pointer;
+}
+
 .result-row:hover {
   box-shadow: var(--shadow);
   border-color: var(--accent-border);
@@ -1365,6 +1369,147 @@
   margin: 16px 0 0;
   font-size: 12px;
   color: var(--text);
+}
+
+/* Ürün detay görünümü — bir sonuç kartına tıklayınca açılır, sol filtre
+   paneli ve header aynen kalır, sadece ana içerik alanı değişir */
+
+.detail-back {
+  border: none;
+  background: none;
+  padding: 0;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.detail-back:hover {
+  color: var(--accent);
+}
+
+.detail-breadcrumb {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.detail-breadcrumb span {
+  margin: 0 4px;
+  opacity: 0.6;
+}
+
+.detail-main {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+  margin-bottom: 32px;
+}
+
+.detail-main .card-image-box {
+  width: 260px;
+  height: 260px;
+  flex-shrink: 0;
+}
+
+.detail-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.detail-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-h);
+  line-height: 130%;
+}
+
+.variant-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.variant-group-label {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.variant-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.variant-pill {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.variant-pill:hover {
+  border-color: var(--accent-border);
+}
+
+.variant-pill.is-selected {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.detail-seller-count {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.detail-price {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.detail-actions .card-link {
+  margin-top: 0;
+}
+
+.detail-seller-list {
+  margin-top: 16px;
+}
+
+@media (max-width: 640px) {
+  .detail-main {
+    flex-direction: column;
+  }
+
+  .detail-main .card-image-box {
+    width: 100%;
+    max-width: 220px;
+    margin: 0 auto;
+  }
 }
 
 @media (max-width: 640px) {
