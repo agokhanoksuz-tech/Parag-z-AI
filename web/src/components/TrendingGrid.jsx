@@ -64,8 +64,8 @@ export default function TrendingGrid({ items, onSelect, title = "Son bakılan ü
             <div className="card-body">
               <p className="card-store">{item.storeName}</p>
               <p className="card-title">{item.productName}</p>
-              <p className="card-price">{item.price.toLocaleString("tr-TR")} TL</p>
               <PriceHistoryChart query={item.query} />
+              <p className="card-price">{item.price.toLocaleString("tr-TR")} TL</p>
             </div>
           </button>
         ))}

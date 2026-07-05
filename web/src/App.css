@@ -260,8 +260,8 @@
 
 .hero {
   text-align: center;
-  padding: 28px 24px 8px;
-  margin: 0 0 8px;
+  padding: 12px 24px 0;
+  margin: 0;
 }
 
 .eyebrow {
@@ -288,7 +288,7 @@
   flex-wrap: wrap;
   gap: 20px;
   justify-content: center;
-  margin-top: 28px;
+  margin-top: 14px;
 }
 
 .trust-item {
@@ -310,7 +310,7 @@
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  margin: 0 0 40px;
+  margin: 0 0 20px;
 }
 
 .store-strip-label {
@@ -854,7 +854,7 @@
 }
 
 .trending-section-header .section-title {
-  margin: 32px 0 16px;
+  margin: 16px 0 16px;
 }
 
 .trending-arrows {
@@ -949,6 +949,10 @@
 
 .featured-card-title:hover {
   color: var(--accent);
+}
+
+.featured-card .card-price {
+  margin-top: auto;
 }
 
 /* Sonuç listesi — Cimri/Akakçe tarzı yatay satırlar, çok sayıda teklifi
@@ -1115,12 +1119,18 @@
 }
 
 .card-store {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
+  width: fit-content;
   color: var(--text);
-  font-size: 13px;
+  font-size: 12px;
+  font-weight: 500;
   margin: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
 }
 
 .card-store-icon {
@@ -1266,6 +1276,10 @@
     box-shadow 0.15s ease,
     border-color 0.15s ease,
     transform 0.15s ease;
+}
+
+.trending-card .card-price {
+  margin-top: auto;
 }
 
 .trending-card:hover {
