@@ -1166,9 +1166,9 @@
 }
 
 .badge-lowest {
-  color: #15803d;
-  background: rgba(21, 128, 61, 0.12);
-  border: 1px solid rgba(21, 128, 61, 0.35);
+  color: #3ca886;
+  background: #e1f2ed;
+  border: 1px solid rgba(60, 168, 134, 0.35);
 }
 
 .rating-stars {
