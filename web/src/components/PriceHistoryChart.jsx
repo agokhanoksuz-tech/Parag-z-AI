@@ -40,16 +40,29 @@ export default function PriceHistoryChart({ query }) {
   const pathD = coords.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
   const [lastX, lastY] = coords[coords.length - 1];
 
+  const current = prices[prices.length - 1];
+  const hasDrop = current < max;
+  const dropPercent = hasDrop ? Math.round(((max - current) / max) * 100) : 0;
+
   return (
     <div className="price-history-chart">
-      <svg width={WIDTH} height={HEIGHT} viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="none">
+      <svg width="100%" height={HEIGHT} viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="none">
         <path className="price-history-line" d={pathD} />
         <circle className="price-history-dot" cx={lastX} cy={lastY} r="3" />
       </svg>
-      <div className="price-history-labels">
-        <span>30 gün en düşük: {min.toLocaleString("tr-TR")} TL</span>
-        <span>en yüksek: {max.toLocaleString("tr-TR")} TL</span>
-      </div>
+      {hasDrop ? (
+        <p className="price-drop-summary">
+          <span className="price-drop-before">{max.toLocaleString("tr-TR")} TL</span>
+          <span className="price-drop-arrow"> → </span>
+          <span className="price-drop-after">{current.toLocaleString("tr-TR")} TL</span>
+          <span className="price-drop-percent">−%{dropPercent}</span>
+        </p>
+      ) : (
+        <div className="price-history-labels">
+          <span>30 gün en düşük: {min.toLocaleString("tr-TR")} TL</span>
+          <span>en yüksek: {max.toLocaleString("tr-TR")} TL</span>
+        </div>
+      )}
     </div>
   );
 }

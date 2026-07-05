@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CATEGORIES } from "./CategoryChips";
+import { CATEGORIES } from "../data/categories";
 
 function ChevronIcon({ open }) {
   return (

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   TechIcon,
   HomeIcon,
@@ -9,7 +8,7 @@ import {
   DropletIcon,
   CarIcon,
   PawIcon,
-} from "./icons";
+} from "../components/icons";
 
 // Cimri'nin gerçek ana kategori gruplandırmasına göre (bkz. cimri.com) —
 // "Süpermarket" hariç, çünkü orada kupon/broşür tabanlı ayrı bir akış,
@@ -104,45 +103,3 @@ export const CATEGORIES = [
     ],
   },
 ];
-
-export default function CategoryChips({ onSelect }) {
-  const [activeIndex, setActiveIndex] = useState(null);
-  const active = activeIndex != null ? CATEGORIES[activeIndex] : null;
-
-  function handleTabClick(index) {
-    setActiveIndex((current) => (current === index ? null : index));
-  }
-
-  function handleSelect(term) {
-    setActiveIndex(null);
-    onSelect(term);
-  }
-
-  return (
-    <nav className="category-nav">
-      <div className="category-tabs">
-        {CATEGORIES.map(({ name, Icon }, index) => (
-          <button
-            key={name}
-            type="button"
-            className={`category-tab${index === activeIndex ? " is-active" : ""}`}
-            onClick={() => handleTabClick(index)}
-          >
-            <Icon />
-            <span>{name}</span>
-          </button>
-        ))}
-      </div>
-
-      {active && (
-        <div className="category-row">
-          {active.items.map(({ label, term }) => (
-            <button key={label} type="button" className="category-chip" onClick={() => handleSelect(term)}>
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
-    </nav>
-  );
-}

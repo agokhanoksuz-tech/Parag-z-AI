@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import { api } from "./api";
-import CategoryChips from "./components/CategoryChips";
 import CategorySidebarTree from "./components/CategorySidebarTree";
 import FavoriteButton from "./components/FavoriteButton";
 import FeaturedProductGrid from "./components/FeaturedProductGrid";
@@ -14,7 +13,6 @@ import PriceAlarmButton from "./components/PriceAlarmButton";
 import PriceHistoryChart from "./components/PriceHistoryChart";
 import PriceRangeBar from "./components/PriceRangeBar";
 import PriceRangeSlider from "./components/PriceRangeSlider";
-import QuickCategoryCapsules from "./components/QuickCategoryCapsules";
 import RatingStars from "./components/RatingStars";
 import RegisterForm from "./components/RegisterForm";
 import { StoreStrip, TrustFeatures } from "./components/TrustBar";
@@ -584,8 +582,6 @@ export default function App() {
               )}
             </nav>
           </header>
-
-          <CategoryChips onSelect={handleSuggestionClick} />
         </div>
       </div>
 
@@ -619,7 +615,10 @@ export default function App() {
 
       <div className="hero">
         <p className="eyebrow">Türkiye'nin akıllı fiyat karşılaştırma platformu</p>
-        <h1>Paragöz AI</h1>
+        <h1 className="hero-title">
+          Parag
+          <Logo />z AI
+        </h1>
         <p>Bir ürün adı yaz, onlarca mağazayı aynı anda tara, en ucuz fiyatı bul.</p>
 
         <div className="search-row">
@@ -771,8 +770,6 @@ export default function App() {
                       }}
                     />
                   )}
-
-                  <QuickCategoryCapsules onSelect={handleSuggestionClick} />
 
                   <FeaturedProductGrid
                     items={trending}

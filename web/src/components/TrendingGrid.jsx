@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import PriceHistoryChart from "./PriceHistoryChart";
 
 function TrendingImage({ item }) {
   const [imageFailed, setImageFailed] = useState(false);
@@ -64,6 +65,7 @@ export default function TrendingGrid({ items, onSelect, title = "Son bakılan ü
               <p className="card-store">{item.storeName}</p>
               <p className="card-title">{item.productName}</p>
               <p className="card-price">{item.price.toLocaleString("tr-TR")} TL</p>
+              <PriceHistoryChart query={item.query} />
             </div>
           </button>
         ))}

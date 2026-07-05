@@ -49,6 +49,10 @@
   color: var(--accent);
 }
 
+.hero-title svg {
+  color: var(--accent);
+}
+
 .header-nav {
   display: flex;
   align-items: center;
@@ -782,6 +786,38 @@
   margin-top: 4px;
 }
 
+.price-drop-summary {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.price-drop-before {
+  color: var(--text);
+  text-decoration: line-through;
+}
+
+.price-drop-arrow {
+  color: var(--text);
+}
+
+.price-drop-after {
+  color: var(--text-h);
+  font-weight: 700;
+}
+
+.price-drop-percent {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #e1f2ed;
+  color: #3ca886;
+  font-weight: 700;
+  font-size: 11px;
+}
+
 /* Ana sayfa kart grid'i (trending) — büyük görselli dikey kartlar */
 
 .results-grid {
@@ -842,44 +878,6 @@
 .results-track .trending-card {
   flex: 0 0 210px;
   scroll-snap-align: start;
-}
-
-/* Hızlı kategori kapsülleri — ana sayfada büyük pill butonlar */
-
-.quick-capsules {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 8px 0 32px;
-}
-
-.quick-capsule {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--code-bg);
-  color: var(--text-h);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    background 0.15s ease,
-    transform 0.1s ease;
-}
-
-.quick-capsule svg {
-  color: var(--accent);
-  flex-shrink: 0;
-}
-
-.quick-capsule:hover {
-  border-color: var(--accent-border);
-  background: var(--accent-bg);
-  transform: translateY(-1px);
 }
 
 /* Öne Çıkan Ürünler — büyük detaylı kartlar: görsel, favori/alarm,
@@ -1252,81 +1250,6 @@
   box-shadow: var(--shadow);
   transform: translateY(-2px);
   border-color: var(--accent-border);
-}
-
-/* Kategoriler — başlığın altında kalıcı yatay bar: ana kategori sekmeleri,
-   tıklanınca altında o kategorinin alt dalları açılır */
-
-.category-nav {
-  padding: 6px 0 10px;
-}
-
-.category-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
-}
-
-.category-tab {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 12px;
-  border: none;
-  border-radius: 8px;
-  background: none;
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
-}
-
-.category-tab:hover {
-  background: var(--accent-bg);
-  color: var(--text-h);
-}
-
-.category-tab.is-active {
-  background: var(--accent-bg);
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.category-tab svg {
-  flex-shrink: 0;
-}
-
-.category-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
-}
-
-.category-chip {
-  padding: 8px 16px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text-h);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    background 0.15s ease,
-    transform 0.1s ease;
-}
-
-.category-chip:hover {
-  border-color: var(--accent-border);
-  background: var(--accent-bg);
-  transform: translateY(-1px);
 }
 
 /* Nasıl çalışır */
