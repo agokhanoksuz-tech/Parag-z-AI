@@ -461,6 +461,19 @@ export default function App() {
               <Logo />z AI
             </button>
 
+            <div className="header-search">
+              <input
+                className="header-search-input"
+                value={product}
+                onChange={(e) => setProduct(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && search()}
+                placeholder="Ürün ara..."
+              />
+              <button type="button" className="header-search-button" onClick={() => search()} disabled={loading}>
+                {loading ? "..." : "Ara"}
+              </button>
+            </div>
+
             <nav className="header-nav">
               {user ? (
                 <>
@@ -525,26 +538,6 @@ export default function App() {
       <div className="hero">
         <p className="eyebrow">Türkiye'nin akıllı fiyat karşılaştırma platformu</p>
         <p className="hero-lead">Bir ürün adı yaz, onlarca mağazayı aynı anda tara, en ucuz fiyatı bul.</p>
-
-        <div className="search-row">
-          <input
-            className="search-input"
-            value={product}
-            onChange={(e) => setProduct(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && search()}
-            placeholder="Örn. iphone 15 128gb"
-          />
-          <button className="btn-primary" onClick={() => search()} disabled={loading}>
-            {loading ? "Aranıyor..." : "Ara"}
-          </button>
-          {data && (
-            <select className="sort-select" value={sort} onChange={handleSortChange}>
-              <option value="asc">Ucuzdan pahalıya</option>
-              <option value="desc">Pahalıdan ucuza</option>
-            </select>
-          )}
-        </div>
-
         <TrustFeatures />
       </div>
 
@@ -713,15 +706,21 @@ export default function App() {
                     </div>
                   ) : (
                     <div className="search-results">
-                      <p className="result-count">
-                        {filteredResults.length} sonuç bulundu
-                        {data.generatedAt && (
-                          <span className="result-freshness">
-                            {" "}
-                            · Son güncelleme: {formatRelativeTime(data.generatedAt)}
-                          </span>
-                        )}
-                      </p>
+                      <div className="result-count-row">
+                        <p className="result-count">
+                          {filteredResults.length} sonuç bulundu
+                          {data.generatedAt && (
+                            <span className="result-freshness">
+                              {" "}
+                              · Son güncelleme: {formatRelativeTime(data.generatedAt)}
+                            </span>
+                          )}
+                        </p>
+                        <select className="sort-select" value={sort} onChange={handleSortChange}>
+                          <option value="asc">Ucuzdan pahalıya</option>
+                          <option value="desc">Pahalıdan ucuza</option>
+                        </select>
+                      </div>
 
                       {filteredResults.length === 0 ? (
                         <div className="empty-state">
