@@ -9,6 +9,9 @@ import HowItWorks from "./components/HowItWorks";
 import LoginForm from "./components/LoginForm";
 import Logo from "./components/Logo";
 import PriceHistoryChart from "./components/PriceHistoryChart";
+import PriceRangeBar from "./components/PriceRangeBar";
+import PriceRangeSlider from "./components/PriceRangeSlider";
+import QuickCategoryCapsules from "./components/QuickCategoryCapsules";
 import RegisterForm from "./components/RegisterForm";
 import SidePanel from "./components/SidePanel";
 import { StoreStrip, TrustFeatures } from "./components/TrustBar";
@@ -213,6 +216,8 @@ function ResultCard({
   favoriteId,
   targetPrice,
   onSetPriceAlarm,
+  priceRangeMin,
+  priceRangeMax,
 }) {
   if (highlight) {
     return (
@@ -240,6 +245,7 @@ function ResultCard({
           )}
 
           <p className="card-price">{item.price.toLocaleString("tr-TR")} TL</p>
+          <PriceRangeBar price={item.price} min={priceRangeMin} max={priceRangeMax} />
 
           {searchedProduct && <PriceHistoryChart key={searchedProduct} query={searchedProduct} />}
 
@@ -272,6 +278,8 @@ function ResultCard({
             <LowestPriceBadge />
           )}
         </div>
+
+        <PriceRangeBar price={item.price} min={priceRangeMin} max={priceRangeMax} />
       </div>
 
       <div className="row-price-block">
@@ -392,8 +400,8 @@ export default function App() {
   const [favorites, setFavorites] = useState([]);
   const [trending, setTrending] = useState([]);
   const [recentlyViewed, setRecentlyViewed] = useState([]);
-  const [priceMin, setPriceMin] = useState("");
-  const [priceMax, setPriceMax] = useState("");
+  const [priceMin, setPriceMin] = useState(null);
+  const [priceMax, setPriceMax] = useState(null);
   const [condition, setCondition] = useState("all"); // all | new | refurbished
   const [selectedStores, setSelectedStores] = useState([]);
   const [showFavorites, setShowFavorites] = useState(false);
@@ -449,8 +457,8 @@ export default function App() {
     setLoading(true);
     setError("");
     setHasSearched(true);
-    setPriceMin("");
-    setPriceMax("");
+    setPriceMin(null);
+    setPriceMax(null);
     setCondition("all");
     setSelectedStores([]);
 
@@ -589,9 +597,18 @@ export default function App() {
   }, {});
   const storeEntries = Object.entries(storeCounts).sort((a, b) => b[1] - a[1]);
 
+  const resultPrices = (data?.results ?? []).map((r) => r.price);
+  const priceBounds =
+    resultPrices.length > 0
+      ? {
+          min: Math.floor(Math.min(...resultPrices) / 100) * 100,
+          max: Math.ceil(Math.max(...resultPrices) / 100) * 100,
+        }
+      : { min: 0, max: 100000 };
+
   const filteredResults = (data?.results ?? []).filter((item) => {
-    if (priceMin !== "" && item.price < Number(priceMin)) return false;
-    if (priceMax !== "" && item.price > Number(priceMax)) return false;
+    if (priceMin != null && item.price < priceMin) return false;
+    if (priceMax != null && item.price > priceMax) return false;
     if (condition === "new" && item.isRefurbished) return false;
     if (condition === "refurbished" && !item.isRefurbished) return false;
     if (selectedStores.length > 0 && !selectedStores.includes(item.store)) return false;
@@ -724,6 +741,8 @@ export default function App() {
 
               {!hasSearched && !loading && !error && (
                 <>
+                  <QuickCategoryCapsules onSelect={handleSuggestionClick} />
+
                   {user && recentlyViewed.length > 0 && (
                     <TrendingGrid
                       items={recentlyViewed}
@@ -768,21 +787,17 @@ export default function App() {
 
                         <div className="filter-group">
                           <label className="filter-label">Fiyat Aralığı (TL)</label>
-                          <div className="filter-price-inputs">
-                            <input
-                              type="number"
-                              min="0"
-                              placeholder="Min"
-                              value={priceMin}
-                              onChange={(e) => setPriceMin(e.target.value)}
-                            />
-                            <input
-                              type="number"
-                              min="0"
-                              placeholder="Maks"
-                              value={priceMax}
-                              onChange={(e) => setPriceMax(e.target.value)}
-                            />
+                          <PriceRangeSlider
+                            min={priceBounds.min}
+                            max={priceBounds.max}
+                            valueMin={priceMin}
+                            valueMax={priceMax}
+                            onChangeMin={setPriceMin}
+                            onChangeMax={setPriceMax}
+                          />
+                          <div className="price-range-labels">
+                            <span>{(priceMin ?? priceBounds.min).toLocaleString("tr-TR")} TL</span>
+                            <span>{(priceMax ?? priceBounds.max).toLocaleString("tr-TR")} TL</span>
                           </div>
                         </div>
 
@@ -865,6 +880,8 @@ export default function App() {
                                 favoriteId={favoriteIdFor(filteredCheapest)}
                                 targetPrice={targetPriceFor(filteredCheapest)}
                                 onSetPriceAlarm={handleSetPriceAlarm}
+                                priceRangeMin={priceBounds.min}
+                                priceRangeMax={priceBounds.max}
                               />
                             )}
 
@@ -881,6 +898,8 @@ export default function App() {
                                       favoriteId={favoriteIdFor(item)}
                                       targetPrice={targetPriceFor(item)}
                                       onSetPriceAlarm={handleSetPriceAlarm}
+                                      priceRangeMin={priceBounds.min}
+                                      priceRangeMax={priceBounds.max}
                                     />
                                   ))}
                                 </div>
