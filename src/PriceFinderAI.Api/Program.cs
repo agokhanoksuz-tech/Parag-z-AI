@@ -140,6 +140,25 @@ api.MapGet("/trending", async (IPriceHistoryStore historyStore, CancellationToke
 .WithName("GetTrending")
 .WithSummary("Ana sayfa için son taranan ürünlerden bir öneri listesi döner");
 
+api.MapGet("/search-suggestions", async (
+    string? q,
+    IPriceHistoryStore historyStore,
+    CancellationToken cancellationToken) =>
+{
+    if (string.IsNullOrWhiteSpace(q) || q.Trim().Length < 2)
+        return Results.Ok(Array.Empty<TrendingItemDto>());
+
+    var matches = await historyStore.SearchTrackedAsync(q, 5, cancellationToken);
+
+    var dtos = matches
+        .Select(t => new TrendingItemDto(t.Query, t.ProductName, t.StoreName, t.Price, t.ImageUrl, t.Url, t.Rating, t.ReviewCount))
+        .ToList();
+
+    return Results.Ok(dtos);
+})
+.WithName("GetSearchSuggestions")
+.WithSummary("Arama kutusuna yazılan kısmi metne göre daha önce gerçekten aranmış ürünlerden öneri döner");
+
 api.MapGet("/recently-viewed", async (
     ClaimsPrincipal user,
     IViewHistoryStore viewHistoryStore,

@@ -26,6 +26,9 @@ public interface IPriceHistoryStore
     /// <summary>Most recently checked tracked products, each represented by its cheapest known snapshot — feeds the homepage.</summary>
     Task<IReadOnlyList<TrendingProduct>> GetTrendingAsync(int count, CancellationToken cancellationToken = default);
 
+    /// <summary>Previously tracked products whose query contains <paramref name="queryPrefix"/> — feeds search-box suggestions with real, previously searched products only.</summary>
+    Task<IReadOnlyList<TrendingProduct>> SearchTrackedAsync(string queryPrefix, int count, CancellationToken cancellationToken = default);
+
     /// <summary>Daily lowest price across all stores, for the last <paramref name="days"/> days — feeds the price history chart.</summary>
     Task<IReadOnlyList<PricePoint>> GetPriceHistoryAsync(string query, int days, CancellationToken cancellationToken = default);
 }

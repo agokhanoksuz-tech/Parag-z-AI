@@ -178,6 +178,23 @@ public class ProductMatchingServiceTests
         Assert.Empty(filtered);
     }
 
+    [Theory]
+    [InlineData("Asus TUF Gaming A15 Ryzen7 7445hs Rtx3050 15.6\" FHD FreeDOS Dizüstü Bilgisayar")]
+    [InlineData("Monster Abra A5 V22.1.4 Intel Core i7 13620H 16 GB RAM 1 TB SSD Oyun Bilgisayarı")]
+    [InlineData("LENOVO Yoga Slim 7 Intel Core Ultra 5 125H 16 GB RAM 512 SSD Laptop")]
+    public void Filter_MatchesLaptopSynonyms_WhenSearchingForLaptop(string productName)
+    {
+        // Gerçek bir veri hatasıydı: "laptop" aratıldığında Türkçe ilanların
+        // çoğu "Dizüstü Bilgisayar" ya da sadece "Bilgisayar" diyor — birebir
+        // kelime eşleşmesi bu ilanların tamamını eleyip 40 gerçek sonuçtan 7'ye
+        // düşürüyordu.
+        var results = new[] { Result(productName) };
+
+        var filtered = _sut.Filter("laptop", results);
+
+        Assert.Single(filtered);
+    }
+
     [Fact]
     public void Filter_KeepsRealKulaklikListing_WhenSearchingForKulaklik()
     {

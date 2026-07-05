@@ -17,6 +17,7 @@ import ProductImage from "./components/ProductImage";
 import RatingStars from "./components/RatingStars";
 import RegisterForm from "./components/RegisterForm";
 import { CheapestBadge, LowestPriceBadge, RefurbishedBadge, TrustBadge } from "./components/ResultBadges";
+import SearchSuggestions from "./components/SearchSuggestions";
 import StoreLine from "./components/StoreLine";
 import { StoreStrip, TrustFeatures } from "./components/TrustBar";
 import TrendingGrid from "./components/TrendingGrid";
@@ -223,6 +224,7 @@ export default function App() {
   const [selectedStores, setSelectedStores] = useState([]);
   const [showFavorites, setShowFavorites] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [searchFocused, setSearchFocused] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -466,12 +468,29 @@ export default function App() {
                 className="header-search-input"
                 value={product}
                 onChange={(e) => setProduct(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && search()}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    search();
+                    setSearchFocused(false);
+                  }
+                }}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setSearchFocused(false)}
                 placeholder="Ürün ara..."
               />
               <button type="button" className="header-search-button" onClick={() => search()} disabled={loading}>
                 {loading ? "..." : "Ara"}
               </button>
+              {searchFocused && (
+                <SearchSuggestions
+                  query={product}
+                  onSelect={(term) => {
+                    setProduct(term);
+                    search(sort, term);
+                    setSearchFocused(false);
+                  }}
+                />
+              )}
             </div>
 
             <nav className="header-nav">

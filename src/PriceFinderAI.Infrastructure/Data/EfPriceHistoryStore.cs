@@ -145,6 +145,46 @@ public sealed class EfPriceHistoryStore(AppDbContext db, int maxTrackedProducts)
         return trending;
     }
 
+    public async Task<IReadOnlyList<TrendingProduct>> SearchTrackedAsync(string queryPrefix, int count, CancellationToken cancellationToken = default)
+    {
+        var normalizedPrefix = ProductMatchingService.Normalize(queryPrefix);
+
+        if (string.IsNullOrWhiteSpace(normalizedPrefix))
+            return [];
+
+        var trackedProducts = await db.TrackedProducts
+            .Where(t => t.Query.Contains(normalizedPrefix))
+            .OrderByDescending(t => t.LastCheckedAt)
+            .Take(count)
+            .ToListAsync(cancellationToken);
+
+        var matches = new List<TrendingProduct>();
+
+        foreach (var tracked in trackedProducts)
+        {
+            var snapshots = await db.PriceSnapshots
+                .Where(s => s.TrackedProductId == tracked.Id)
+                .ToListAsync(cancellationToken);
+
+            var cheapest = snapshots.OrderBy(s => s.Price).FirstOrDefault();
+
+            if (cheapest is not null)
+            {
+                matches.Add(new TrendingProduct(
+                    tracked.Query,
+                    cheapest.ProductName,
+                    cheapest.StoreName,
+                    cheapest.Price,
+                    cheapest.ImageUrl,
+                    cheapest.Url,
+                    cheapest.Rating,
+                    cheapest.ReviewCount));
+            }
+        }
+
+        return matches;
+    }
+
     public async Task<IReadOnlyList<PricePoint>> GetPriceHistoryAsync(string query, int days, CancellationToken cancellationToken = default)
     {
         var key = ProductMatchingService.Normalize(query);

@@ -16,6 +16,22 @@ public sealed class ProductMatchingService
         "imei", "kayıtsız", "kayitsiz"
     ];
 
+    /// <summary>
+    /// Gerçek bir veri hatasıydı: "laptop" aratıldığında Türkçe ilanların çoğu
+    /// "dizüstü bilgisayar" veya sadece "bilgisayar" diyor, "laptop" kelimesi
+    /// hiç geçmiyor — birebir kelime eşleşmesi bu ilanların tamamını eliyordu
+    /// (40 gerçek sonuçtan 7'ye düşüyordu). Her sorgu kelimesi için, kendisi
+    /// veya eş anlamlılarından biri başlıkta geçerse eşleşme kabul edilir.
+    /// </summary>
+    private static readonly Dictionary<string, string[]> SynonymGroups = new()
+    {
+        ["laptop"] = ["notebook", "dizustu", "bilgisayar"],
+        ["notebook"] = ["laptop", "dizustu", "bilgisayar"],
+        ["tv"] = ["televizyon"],
+        ["televizyon"] = ["tv"],
+        ["telefon"] = ["akilli telefon", "cep telefonu"],
+    };
+
     public IReadOnlyList<PriceResult> Filter(string query, IReadOnlyList<PriceResult> products)
     {
         var normalizedQuery = Normalize(query);
@@ -64,7 +80,7 @@ public sealed class ProductMatchingService
 
         foreach (var word in queryWords)
         {
-            if (!title.Contains(word))
+            if (!title.Contains(word) && !(SynonymGroups.TryGetValue(word, out var synonyms) && synonyms.Any(title.Contains)))
                 return false;
         }
 
