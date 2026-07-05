@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import { api } from "./api";
 import CategoryChips from "./components/CategoryChips";
+import CategorySidebarTree from "./components/CategorySidebarTree";
 import FavoriteButton from "./components/FavoriteButton";
 import Footer from "./components/Footer";
 import HowItWorks from "./components/HowItWorks";
@@ -9,6 +10,7 @@ import LoginForm from "./components/LoginForm";
 import Logo from "./components/Logo";
 import PriceHistoryChart from "./components/PriceHistoryChart";
 import RegisterForm from "./components/RegisterForm";
+import SidePanel from "./components/SidePanel";
 import { StoreStrip, TrustFeatures } from "./components/TrustBar";
 import TrendingGrid from "./components/TrendingGrid";
 import ValueProps from "./components/ValueProps";
@@ -392,7 +394,8 @@ export default function App() {
   const [recentlyViewed, setRecentlyViewed] = useState([]);
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
-  const [hideRefurbished, setHideRefurbished] = useState(false);
+  const [condition, setCondition] = useState("all"); // all | new | refurbished
+  const [selectedStores, setSelectedStores] = useState([]);
   const [showFavorites, setShowFavorites] = useState(false);
 
   useEffect(() => {
@@ -448,7 +451,8 @@ export default function App() {
     setHasSearched(true);
     setPriceMin("");
     setPriceMax("");
-    setHideRefurbished(false);
+    setCondition("all");
+    setSelectedStores([]);
 
     try {
       const json = await api.get(`/search?product=${encodeURIComponent(term)}&sort=${nextSort}`);
@@ -575,10 +579,22 @@ export default function App() {
     setFavorites((prev) => prev.map((f) => (f.id === id ? { ...f, targetPrice } : f)));
   }
 
+  function toggleStore(store) {
+    setSelectedStores((prev) => (prev.includes(store) ? prev.filter((s) => s !== store) : [...prev, store]));
+  }
+
+  const storeCounts = (data?.results ?? []).reduce((counts, item) => {
+    counts[item.store] = (counts[item.store] ?? 0) + 1;
+    return counts;
+  }, {});
+  const storeEntries = Object.entries(storeCounts).sort((a, b) => b[1] - a[1]);
+
   const filteredResults = (data?.results ?? []).filter((item) => {
     if (priceMin !== "" && item.price < Number(priceMin)) return false;
     if (priceMax !== "" && item.price > Number(priceMax)) return false;
-    if (hideRefurbished && item.isRefurbished) return false;
+    if (condition === "new" && item.isRefurbished) return false;
+    if (condition === "refurbished" && !item.isRefurbished) return false;
+    if (selectedStores.length > 0 && !selectedStores.includes(item.store)) return false;
     return true;
   });
 
@@ -684,154 +700,205 @@ export default function App() {
 
       <StoreStrip />
 
-      {showFavorites ? (
-        <>
-          <h2 className="section-title">Favorilerim</h2>
-          <FavoritesView
-            favorites={favorites}
-            onRemove={handleRemoveFavorite}
-            onSetTargetPrice={handleSetTargetPrice}
-          />
-        </>
-      ) : (
-        <>
-          {loading && (
-            <p className="status-row">
-              <span className="spinner" />
-              Fiyatlar taranıyor...
-            </p>
-          )}
-
-          {error && <div className="error-banner">{error}</div>}
-
-          {!hasSearched && !loading && !error && (
+      <div className="page-layout">
+        <div className="main-column">
+          {showFavorites ? (
             <>
-              {user && recentlyViewed.length > 0 && (
-                <TrendingGrid
-                  items={recentlyViewed}
-                  title="Son baktıkların"
-                  onSelect={(query) => {
-                    setProduct(query);
-                    search(sort, query);
-                  }}
-                />
-              )}
-
-              {trending.length > 0 && (
-                <TrendingGrid
-                  items={trending}
-                  onSelect={(query) => {
-                    setProduct(query);
-                    search(sort, query);
-                  }}
-                />
-              )}
-
-              <HowItWorks />
-              <ValueProps />
+              <h2 className="section-title">Favorilerim</h2>
+              <FavoritesView
+                favorites={favorites}
+                onRemove={handleRemoveFavorite}
+                onSetTargetPrice={handleSetTargetPrice}
+              />
             </>
-          )}
-
-          {data && !loading && (
+          ) : (
             <>
-              {data.resultCount === 0 ? (
-                <div className="empty-state">
-                  <p>Bu ürün için uygun bir sonuç bulunamadı.</p>
-                </div>
-              ) : (
-                <div className="search-layout">
-                  <aside className="search-filters">
-                    <h3>Filtrele</h3>
+              {loading && (
+                <p className="status-row">
+                  <span className="spinner" />
+                  Fiyatlar taranıyor...
+                </p>
+              )}
 
-                    <div className="filter-group">
-                      <label className="filter-label">Fiyat Aralığı (TL)</label>
-                      <div className="filter-price-inputs">
-                        <input
-                          type="number"
-                          min="0"
-                          placeholder="Min"
-                          value={priceMin}
-                          onChange={(e) => setPriceMin(e.target.value)}
-                        />
-                        <input
-                          type="number"
-                          min="0"
-                          placeholder="Maks"
-                          value={priceMax}
-                          onChange={(e) => setPriceMax(e.target.value)}
-                        />
-                      </div>
+              {error && <div className="error-banner">{error}</div>}
+
+              {!hasSearched && !loading && !error && (
+                <>
+                  {user && recentlyViewed.length > 0 && (
+                    <TrendingGrid
+                      items={recentlyViewed}
+                      title="Son baktıkların"
+                      onSelect={(query) => {
+                        setProduct(query);
+                        search(sort, query);
+                      }}
+                    />
+                  )}
+
+                  {trending.length > 0 && (
+                    <TrendingGrid
+                      items={trending}
+                      onSelect={(query) => {
+                        setProduct(query);
+                        search(sort, query);
+                      }}
+                    />
+                  )}
+
+                  <HowItWorks />
+                  <ValueProps />
+                </>
+              )}
+
+              {data && !loading && (
+                <>
+                  {data.resultCount === 0 ? (
+                    <div className="empty-state">
+                      <p>Bu ürün için uygun bir sonuç bulunamadı.</p>
                     </div>
+                  ) : (
+                    <div className="search-layout">
+                      <aside className="search-filters">
+                        <h3>Gelişmiş Filtreler</h3>
 
-                    <div className="filter-group">
-                      <label className="filter-checkbox">
-                        <input
-                          type="checkbox"
-                          checked={hideRefurbished}
-                          onChange={(e) => setHideRefurbished(e.target.checked)}
-                        />
-                        Sadece yeni ürünler
-                      </label>
-                    </div>
-                  </aside>
+                        <div className="filter-group">
+                          <label className="filter-label">Kategoriler</label>
+                          <CategorySidebarTree onSelect={handleSuggestionClick} />
+                        </div>
 
-                  <div className="search-results">
-                    <p className="result-count">
-                      {filteredResults.length} sonuç bulundu
-                      {data.generatedAt && (
-                        <span className="result-freshness">
-                          {" "}
-                          · Son güncelleme: {formatRelativeTime(data.generatedAt)}
-                        </span>
-                      )}
-                    </p>
+                        <div className="filter-group">
+                          <label className="filter-label">Fiyat Aralığı (TL)</label>
+                          <div className="filter-price-inputs">
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="Min"
+                              value={priceMin}
+                              onChange={(e) => setPriceMin(e.target.value)}
+                            />
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="Maks"
+                              value={priceMax}
+                              onChange={(e) => setPriceMax(e.target.value)}
+                            />
+                          </div>
+                        </div>
 
-                    {filteredResults.length === 0 ? (
-                      <div className="empty-state">
-                        <p>Filtrelere uyan sonuç yok. Fiyat aralığını genişletmeyi dene.</p>
-                      </div>
-                    ) : (
-                      <>
-                        {filteredCheapest && (
-                          <ResultCard
-                            item={filteredCheapest}
-                            highlight
-                            isFavorited={isFavorited(filteredCheapest)}
-                            onToggleFavorite={handleToggleFavorite}
-                            searchedProduct={data.searchedProduct}
-                            favoriteId={favoriteIdFor(filteredCheapest)}
-                            targetPrice={targetPriceFor(filteredCheapest)}
-                            onSetPriceAlarm={handleSetPriceAlarm}
-                          />
-                        )}
+                        <div className="filter-group">
+                          <label className="filter-label">Durum</label>
+                          <div className="filter-radio-group">
+                            <label className="filter-radio">
+                              <input
+                                type="radio"
+                                name="condition"
+                                checked={condition === "all"}
+                                onChange={() => setCondition("all")}
+                              />
+                              Tümü
+                            </label>
+                            <label className="filter-radio">
+                              <input
+                                type="radio"
+                                name="condition"
+                                checked={condition === "new"}
+                                onChange={() => setCondition("new")}
+                              />
+                              Sadece yeni
+                            </label>
+                            <label className="filter-radio">
+                              <input
+                                type="radio"
+                                name="condition"
+                                checked={condition === "refurbished"}
+                                onChange={() => setCondition("refurbished")}
+                              />
+                              Sadece yenilenmiş
+                            </label>
+                          </div>
+                        </div>
 
-                        {otherResults.length > 0 && (
-                          <>
-                            <h2 className="section-title">Diğer Sonuçlar</h2>
-                            <div className="results-list">
-                              {otherResults.map((item, i) => (
-                                <ResultCard
-                                  key={i}
-                                  item={item}
-                                  isFavorited={isFavorited(item)}
-                                  onToggleFavorite={handleToggleFavorite}
-                                  favoriteId={favoriteIdFor(item)}
-                                  targetPrice={targetPriceFor(item)}
-                                  onSetPriceAlarm={handleSetPriceAlarm}
-                                />
+                        {storeEntries.length > 0 && (
+                          <div className="filter-group">
+                            <label className="filter-label">Mağaza</label>
+                            <div className="filter-checkbox-list">
+                              {storeEntries.map(([store, count]) => (
+                                <label className="filter-checkbox" key={store}>
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedStores.includes(store)}
+                                    onChange={() => toggleStore(store)}
+                                  />
+                                  {store} <span className="filter-count">({count})</span>
+                                </label>
                               ))}
                             </div>
+                          </div>
+                        )}
+                      </aside>
+
+                      <div className="search-results">
+                        <p className="result-count">
+                          {filteredResults.length} sonuç bulundu
+                          {data.generatedAt && (
+                            <span className="result-freshness">
+                              {" "}
+                              · Son güncelleme: {formatRelativeTime(data.generatedAt)}
+                            </span>
+                          )}
+                        </p>
+
+                        {filteredResults.length === 0 ? (
+                          <div className="empty-state">
+                            <p>Filtrelere uyan sonuç yok. Filtreleri genişletmeyi dene.</p>
+                          </div>
+                        ) : (
+                          <>
+                            {filteredCheapest && (
+                              <ResultCard
+                                item={filteredCheapest}
+                                highlight
+                                isFavorited={isFavorited(filteredCheapest)}
+                                onToggleFavorite={handleToggleFavorite}
+                                searchedProduct={data.searchedProduct}
+                                favoriteId={favoriteIdFor(filteredCheapest)}
+                                targetPrice={targetPriceFor(filteredCheapest)}
+                                onSetPriceAlarm={handleSetPriceAlarm}
+                              />
+                            )}
+
+                            {otherResults.length > 0 && (
+                              <>
+                                <h2 className="section-title">Diğer Sonuçlar</h2>
+                                <div className="results-list">
+                                  {otherResults.map((item, i) => (
+                                    <ResultCard
+                                      key={i}
+                                      item={item}
+                                      isFavorited={isFavorited(item)}
+                                      onToggleFavorite={handleToggleFavorite}
+                                      favoriteId={favoriteIdFor(item)}
+                                      targetPrice={targetPriceFor(item)}
+                                      onSetPriceAlarm={handleSetPriceAlarm}
+                                    />
+                                  ))}
+                                </div>
+                              </>
+                            )}
                           </>
                         )}
-                      </>
-                    )}
-                  </div>
-                </div>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}
-        </>
-      )}
+        </div>
+
+        <SidePanel user={user} favorites={favorites} trending={trending} onSelect={handleSuggestionClick} />
+      </div>
 
       <Footer />
       </div>

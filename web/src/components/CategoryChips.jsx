@@ -14,7 +14,7 @@ import {
 // Cimri'nin gerçek ana kategori gruplandırmasına göre (bkz. cimri.com) —
 // "Süpermarket" hariç, çünkü orada kupon/broşür tabanlı ayrı bir akış,
 // bizim tek-ürün-fiyat-karşılaştırma modelimize uymuyor.
-const CATEGORIES = [
+export const CATEGORIES = [
   {
     name: "Elektronik & Cep Telefonu",
     Icon: TechIcon,

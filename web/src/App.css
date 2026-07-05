@@ -1,6 +1,6 @@
 .app {
   width: 100%;
-  max-width: 1320px;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 24px 24px 64px;
   text-align: left;
@@ -20,7 +20,7 @@
 
 .site-header-inner {
   width: 100%;
-  max-width: 1320px;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 0 24px;
 }
@@ -449,11 +449,119 @@
   opacity: 0.75;
 }
 
+/* Sayfa iskeleti — ana içerik + sağda gerçek verilerle dolu yan panel,
+   geniş ekranlarda içeriksiz boş kenar boşluğu kalmasın diye */
+
+.page-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 28px;
+  align-items: start;
+}
+
+.main-column {
+  min-width: 0;
+}
+
+@media (max-width: 1100px) {
+  .page-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 140px;
+}
+
+@media (max-width: 1100px) {
+  .side-panel {
+    position: static;
+  }
+}
+
+.side-panel-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  background: var(--bg);
+}
+
+.side-panel-card h3 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--text-h);
+}
+
+.side-panel-empty {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text);
+  line-height: 145%;
+}
+
+.side-panel-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.side-panel-item-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.side-panel-item-meta {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.side-panel-trend-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+.side-panel-trend-item:hover .side-panel-item-title {
+  color: var(--accent);
+}
+
+.side-panel-trust-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text);
+  line-height: 145%;
+}
+
 /* Arama sonuçları — sol filtre paneli + sağda sonuçlar */
 
 .search-layout {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 240px 1fr;
   gap: 28px;
   align-items: start;
 }
@@ -461,6 +569,8 @@
 .search-filters {
   position: sticky;
   top: 140px;
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 18px;
@@ -511,6 +621,91 @@
   font-size: 13px;
   color: var(--text-h);
   cursor: pointer;
+}
+
+.filter-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-radio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-h);
+  cursor: pointer;
+}
+
+.filter-checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.filter-count {
+  color: var(--text);
+  font-weight: 400;
+}
+
+/* Filtre panelindeki kategori ağacı — CategoryChips ile aynı gerçek
+   kategori/alt dal verisini kullanır, açılır/kapanır grup listesi */
+
+.category-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.category-tree-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 4px;
+  border: none;
+  background: none;
+  color: var(--text-h);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+}
+
+.category-tree-header svg:first-child {
+  flex-shrink: 0;
+  color: var(--text);
+}
+
+.category-tree-header svg:last-child {
+  margin-left: auto;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.category-tree-items {
+  display: flex;
+  flex-direction: column;
+  padding: 2px 0 8px 26px;
+}
+
+.category-tree-item {
+  border: none;
+  background: none;
+  padding: 6px 4px;
+  font-size: 12px;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.category-tree-item:hover {
+  color: var(--accent);
+  background: var(--accent-bg);
 }
 
 .search-results {
