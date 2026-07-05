@@ -19,4 +19,5 @@ public sealed record SearchResponse(
     string UsedSearchProduct,
     int ResultCount,
     SearchResultDto? Cheapest,
-    IReadOnlyList<SearchResultDto> Results);
+    IReadOnlyList<SearchResultDto> Results,
+    DateTime GeneratedAt);

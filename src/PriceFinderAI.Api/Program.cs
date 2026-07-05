@@ -212,7 +212,7 @@ api.MapGet("/search", async (
     var cacheKey = $"search:{ProductMatchingService.Normalize(product)}";
     var cacheMinutes = configuration.GetValue("PriceTracking:LiveSearchCacheMinutes", 15);
 
-    if (!cache.TryGetValue(cacheKey, out PriceSearchOutcome? outcome) || outcome is null)
+    if (!cache.TryGetValue(cacheKey, out (PriceSearchOutcome Outcome, DateTime GeneratedAt) cached))
     {
         var apiKey = configuration["SearchApi:ApiKey"];
         var baseUrl = configuration["SearchApi:BaseUrl"];
@@ -225,12 +225,15 @@ api.MapGet("/search", async (
         ];
 
         var pipeline = new PriceSearchPipeline();
-        outcome = await pipeline.RunAsync(product, providers, logger, cancellationToken);
+        var freshOutcome = await pipeline.RunAsync(product, providers, logger, cancellationToken);
+        cached = (freshOutcome, DateTime.UtcNow);
 
-        cache.Set(cacheKey, outcome, TimeSpan.FromMinutes(cacheMinutes));
+        cache.Set(cacheKey, cached, TimeSpan.FromMinutes(cacheMinutes));
 
-        await historyStore.RecordSnapshotAsync(product, outcome.Results, cancellationToken);
+        await historyStore.RecordSnapshotAsync(product, freshOutcome.Results, cancellationToken);
     }
+
+    var outcome = cached.Outcome;
 
     if (user.Identity?.IsAuthenticated == true && trackedProductId is int viewedTrackedProductId)
     {
@@ -270,7 +273,8 @@ api.MapGet("/search", async (
         UsedSearchProduct: outcome.WidenedQuery,
         ResultCount: sortedResults.Count,
         Cheapest: cheapest,
-        Results: sortedResults));
+        Results: sortedResults,
+        GeneratedAt: cached.GeneratedAt));
 })
 .WithName("SearchProducts")
 .WithSummary("Bir ürünün fiyatlarını farklı mağazalarda arar")

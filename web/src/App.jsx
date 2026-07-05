@@ -13,6 +13,20 @@ import { StoreStrip, TrustFeatures } from "./components/TrustBar";
 import TrendingGrid from "./components/TrendingGrid";
 import ValueProps from "./components/ValueProps";
 
+function formatRelativeTime(isoString) {
+  const diffMs = Date.now() - new Date(isoString).getTime();
+  const minutes = Math.round(diffMs / 60000);
+
+  if (minutes < 1) return "az önce";
+  if (minutes < 60) return `${minutes} dakika önce`;
+
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours} saat önce`;
+
+  const days = Math.round(hours / 24);
+  return `${days} gün önce`;
+}
+
 function TrustBadge({ score }) {
   const isVerified = score >= 4;
 
@@ -145,7 +159,59 @@ function GoToProductLink({ item }) {
   );
 }
 
-function ResultCard({ item, highlight, isFavorited, onToggleFavorite, searchedProduct }) {
+function PriceAlarmButton({ item, favoriteId, targetPrice, onSetAlarm }) {
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(targetPrice ?? "");
+  const [saving, setSaving] = useState(false);
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      const parsed = value === "" ? null : Number(value);
+      const success = await onSetAlarm(item, parsed);
+      if (success) setOpen(false);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="price-alarm">
+      <button type="button" className="price-alarm-toggle" onClick={() => setOpen((o) => !o)}>
+        <BellIcon />
+        {favoriteId && targetPrice != null
+          ? `Alarm: ${targetPrice.toLocaleString("tr-TR")} TL`
+          : "Fiyat Alarmı"}
+      </button>
+      {open && (
+        <div className="price-alarm-popover">
+          <input
+            type="number"
+            min="1"
+            step="0.01"
+            placeholder="Hedef fiyat (TL)"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+          />
+          <button type="button" className="btn-secondary" onClick={handleSave} disabled={saving}>
+            {saving ? "Kaydediliyor..." : "Kaydet"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ResultCard({
+  item,
+  highlight,
+  isFavorited,
+  onToggleFavorite,
+  searchedProduct,
+  favoriteId,
+  targetPrice,
+  onSetPriceAlarm,
+}) {
   if (highlight) {
     return (
       <div className="hero-card">
@@ -174,6 +240,13 @@ function ResultCard({ item, highlight, isFavorited, onToggleFavorite, searchedPr
           <p className="card-price">{item.price.toLocaleString("tr-TR")} TL</p>
 
           {searchedProduct && <PriceHistoryChart key={searchedProduct} query={searchedProduct} />}
+
+          <PriceAlarmButton
+            item={item}
+            favoriteId={favoriteId}
+            targetPrice={targetPrice}
+            onSetAlarm={onSetPriceAlarm}
+          />
         </div>
 
         <GoToProductLink item={item} />
@@ -206,6 +279,12 @@ function ResultCard({ item, highlight, isFavorited, onToggleFavorite, searchedPr
           </p>
         )}
         <p className="card-price">{item.price.toLocaleString("tr-TR")} TL</p>
+        <PriceAlarmButton
+          item={item}
+          favoriteId={favoriteId}
+          targetPrice={targetPrice}
+          onSetAlarm={onSetPriceAlarm}
+        />
         <GoToProductLink item={item} />
       </div>
     </div>
@@ -311,6 +390,9 @@ export default function App() {
   const [favorites, setFavorites] = useState([]);
   const [trending, setTrending] = useState([]);
   const [recentlyViewed, setRecentlyViewed] = useState([]);
+  const [priceMin, setPriceMin] = useState("");
+  const [priceMax, setPriceMax] = useState("");
+  const [hideRefurbished, setHideRefurbished] = useState(false);
   const [showFavorites, setShowFavorites] = useState(false);
 
   useEffect(() => {
@@ -364,6 +446,9 @@ export default function App() {
     setLoading(true);
     setError("");
     setHasSearched(true);
+    setPriceMin("");
+    setPriceMax("");
+    setHideRefurbished(false);
 
     try {
       const json = await api.get(`/search?product=${encodeURIComponent(term)}&sort=${nextSort}`);
@@ -417,6 +502,39 @@ export default function App() {
     return favorites.find((f) => f.storeName === item.store && f.url === item.url)?.id ?? null;
   }
 
+  function targetPriceFor(item) {
+    return favorites.find((f) => f.storeName === item.store && f.url === item.url)?.targetPrice ?? null;
+  }
+
+  async function handleSetPriceAlarm(item, targetPrice) {
+    if (!user) {
+      setAuthPanel("login");
+      return false;
+    }
+
+    const existingId = favoriteIdFor(item);
+
+    try {
+      if (existingId) {
+        await api.put(`/favorites/${existingId}/target-price`, { targetPrice });
+        setFavorites((prev) => prev.map((f) => (f.id === existingId ? { ...f, targetPrice } : f)));
+      } else {
+        const created = await api.post("/favorites", {
+          query: data.searchedProduct,
+          storeName: item.store,
+          productName: item.product,
+          url: item.url,
+          targetPrice,
+        });
+        setFavorites((prev) => [...prev, created]);
+      }
+      return true;
+    } catch (err) {
+      setError(err.message);
+      return false;
+    }
+  }
+
   async function handleToggleFavorite(item) {
     if (!user) {
       setAuthPanel("login");
@@ -457,7 +575,19 @@ export default function App() {
     setFavorites((prev) => prev.map((f) => (f.id === id ? { ...f, targetPrice } : f)));
   }
 
-  const otherResults = data?.results?.filter((item) => item.url !== data.cheapest?.url) ?? [];
+  const filteredResults = (data?.results ?? []).filter((item) => {
+    if (priceMin !== "" && item.price < Number(priceMin)) return false;
+    if (priceMax !== "" && item.price > Number(priceMax)) return false;
+    if (hideRefurbished && item.isRefurbished) return false;
+    return true;
+  });
+
+  const filteredCheapest =
+    filteredResults.length > 0
+      ? filteredResults.reduce((cheapest, item) => (item.price < cheapest.price ? item : cheapest))
+      : null;
+
+  const otherResults = filteredResults.filter((item) => item.url !== filteredCheapest?.url);
 
   return (
     <>
@@ -609,35 +739,94 @@ export default function App() {
                   <p>Bu ürün için uygun bir sonuç bulunamadı.</p>
                 </div>
               ) : (
-                <>
-                  <p className="result-count">{data.resultCount} sonuç bulundu</p>
+                <div className="search-layout">
+                  <aside className="search-filters">
+                    <h3>Filtrele</h3>
 
-                  {data.cheapest && (
-                    <ResultCard
-                      item={data.cheapest}
-                      highlight
-                      isFavorited={isFavorited(data.cheapest)}
-                      onToggleFavorite={handleToggleFavorite}
-                      searchedProduct={data.searchedProduct}
-                    />
-                  )}
-
-                  {otherResults.length > 0 && (
-                    <>
-                      <h2 className="section-title">Diğer Sonuçlar</h2>
-                      <div className="results-list">
-                        {otherResults.map((item, i) => (
-                          <ResultCard
-                            key={i}
-                            item={item}
-                            isFavorited={isFavorited(item)}
-                            onToggleFavorite={handleToggleFavorite}
-                          />
-                        ))}
+                    <div className="filter-group">
+                      <label className="filter-label">Fiyat Aralığı (TL)</label>
+                      <div className="filter-price-inputs">
+                        <input
+                          type="number"
+                          min="0"
+                          placeholder="Min"
+                          value={priceMin}
+                          onChange={(e) => setPriceMin(e.target.value)}
+                        />
+                        <input
+                          type="number"
+                          min="0"
+                          placeholder="Maks"
+                          value={priceMax}
+                          onChange={(e) => setPriceMax(e.target.value)}
+                        />
                       </div>
-                    </>
-                  )}
-                </>
+                    </div>
+
+                    <div className="filter-group">
+                      <label className="filter-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={hideRefurbished}
+                          onChange={(e) => setHideRefurbished(e.target.checked)}
+                        />
+                        Sadece yeni ürünler
+                      </label>
+                    </div>
+                  </aside>
+
+                  <div className="search-results">
+                    <p className="result-count">
+                      {filteredResults.length} sonuç bulundu
+                      {data.generatedAt && (
+                        <span className="result-freshness">
+                          {" "}
+                          · Son güncelleme: {formatRelativeTime(data.generatedAt)}
+                        </span>
+                      )}
+                    </p>
+
+                    {filteredResults.length === 0 ? (
+                      <div className="empty-state">
+                        <p>Filtrelere uyan sonuç yok. Fiyat aralığını genişletmeyi dene.</p>
+                      </div>
+                    ) : (
+                      <>
+                        {filteredCheapest && (
+                          <ResultCard
+                            item={filteredCheapest}
+                            highlight
+                            isFavorited={isFavorited(filteredCheapest)}
+                            onToggleFavorite={handleToggleFavorite}
+                            searchedProduct={data.searchedProduct}
+                            favoriteId={favoriteIdFor(filteredCheapest)}
+                            targetPrice={targetPriceFor(filteredCheapest)}
+                            onSetPriceAlarm={handleSetPriceAlarm}
+                          />
+                        )}
+
+                        {otherResults.length > 0 && (
+                          <>
+                            <h2 className="section-title">Diğer Sonuçlar</h2>
+                            <div className="results-list">
+                              {otherResults.map((item, i) => (
+                                <ResultCard
+                                  key={i}
+                                  item={item}
+                                  isFavorited={isFavorited(item)}
+                                  onToggleFavorite={handleToggleFavorite}
+                                  favoriteId={favoriteIdFor(item)}
+                                  targetPrice={targetPriceFor(item)}
+                                  onSetPriceAlarm={handleSetPriceAlarm}
+                                />
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
               )}
             </>
           )}
