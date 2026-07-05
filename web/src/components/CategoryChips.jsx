@@ -106,18 +106,27 @@ const CATEGORIES = [
 ];
 
 export default function CategoryChips({ onSelect }) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const active = CATEGORIES[activeIndex];
+  const [activeIndex, setActiveIndex] = useState(null);
+  const active = activeIndex != null ? CATEGORIES[activeIndex] : null;
+
+  function handleTabClick(index) {
+    setActiveIndex((current) => (current === index ? null : index));
+  }
+
+  function handleSelect(term) {
+    setActiveIndex(null);
+    onSelect(term);
+  }
 
   return (
-    <div className="category-browser">
+    <nav className="category-nav">
       <div className="category-tabs">
         {CATEGORIES.map(({ name, Icon }, index) => (
           <button
             key={name}
             type="button"
             className={`category-tab${index === activeIndex ? " is-active" : ""}`}
-            onClick={() => setActiveIndex(index)}
+            onClick={() => handleTabClick(index)}
           >
             <Icon />
             <span>{name}</span>
@@ -125,13 +134,15 @@ export default function CategoryChips({ onSelect }) {
         ))}
       </div>
 
-      <div className="category-row">
-        {active.items.map(({ label, term }) => (
-          <button key={label} type="button" className="category-chip" onClick={() => onSelect(term)}>
-            {label}
-          </button>
-        ))}
-      </div>
-    </div>
+      {active && (
+        <div className="category-row">
+          {active.items.map(({ label, term }) => (
+            <button key={label} type="button" className="category-chip" onClick={() => handleSelect(term)}>
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+    </nav>
   );
 }

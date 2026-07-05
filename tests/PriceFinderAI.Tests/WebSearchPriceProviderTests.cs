@@ -110,6 +110,103 @@ public class WebSearchPriceProviderTests
     }
 
     [Fact]
+    public async Task SearchAsync_ExtractsRatingAndReviewCount_WhenPlausible()
+    {
+        const string json = """
+        {
+          "shopping_results": [
+            {
+              "title": "Apple iPhone 15 128 GB Mavi",
+              "source": "Test Mağaza",
+              "price": "24.423,47 TL",
+              "product_link": "https://example.com/1",
+              "rating": 4.6,
+              "reviews": 1250
+            }
+          ]
+        }
+        """;
+
+        var handler = new FakeHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(json)
+        });
+
+        var provider = new WebSearchPriceProvider("fake-key", "https://serpapi.com/search.json", new HttpClient(handler));
+
+        var results = await provider.SearchAsync("iphone 15");
+
+        var result = Assert.Single(results);
+        Assert.Equal(4.6, result.Rating);
+        Assert.Equal(1250, result.ReviewCount);
+    }
+
+    [Fact]
+    public async Task SearchAsync_DropsRatingAndReviewCount_WhenReviewCountIsImplausiblyHigh()
+    {
+        // Gerçek bir veri hatası: SerpApi bazen anlamsız yorum sayıları döndürüyor
+        // (örn. 21 milyar) — bu tür değerler sessizce null'a düşürülmeli.
+        const string json = """
+        {
+          "shopping_results": [
+            {
+              "title": "Apple iPhone 15 128 GB Mavi",
+              "source": "Test Mağaza",
+              "price": "24.423,47 TL",
+              "product_link": "https://example.com/1",
+              "rating": 4.6,
+              "reviews": 21000000000
+            }
+          ]
+        }
+        """;
+
+        var handler = new FakeHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(json)
+        });
+
+        var provider = new WebSearchPriceProvider("fake-key", "https://serpapi.com/search.json", new HttpClient(handler));
+
+        var results = await provider.SearchAsync("iphone 15");
+
+        var result = Assert.Single(results);
+        Assert.Null(result.Rating);
+        Assert.Null(result.ReviewCount);
+    }
+
+    [Fact]
+    public async Task SearchAsync_LeavesRatingNull_WhenReviewCountAbsent()
+    {
+        const string json = """
+        {
+          "shopping_results": [
+            {
+              "title": "Apple iPhone 15 128 GB Mavi",
+              "source": "Test Mağaza",
+              "price": "24.423,47 TL",
+              "product_link": "https://example.com/1",
+              "rating": 4.6
+            }
+          ]
+        }
+        """;
+
+        var handler = new FakeHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(json)
+        });
+
+        var provider = new WebSearchPriceProvider("fake-key", "https://serpapi.com/search.json", new HttpClient(handler));
+
+        var results = await provider.SearchAsync("iphone 15");
+
+        var result = Assert.Single(results);
+        Assert.Null(result.Rating);
+        Assert.Null(result.ReviewCount);
+    }
+
+    [Fact]
     public async Task SearchAsync_LeavesImageFieldsNull_WhenAbsent()
     {
         const string json = """

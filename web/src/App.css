@@ -1,19 +1,36 @@
 .app {
   width: 100%;
-  max-width: 1040px;
+  max-width: 1320px;
   margin: 0 auto;
-  padding: 0 24px 64px;
+  padding: 24px 24px 64px;
   text-align: left;
 }
 
-/* Üst başlık — logo + giriş/favori navigasyonu */
+/* Üst başlık grubu — tam genişlikte sabit (sticky) şerit, içeriği .app ile
+   aynı genişlikte hizalanır */
+
+.site-header-group {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  width: 100%;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.site-header-inner {
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
 
 .site-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 20px 0;
+  padding: 16px 0;
   flex-wrap: wrap;
 }
 
@@ -668,6 +685,30 @@
   font-weight: 600;
 }
 
+.badge-lowest {
+  color: #15803d;
+  background: rgba(21, 128, 61, 0.12);
+  border: 1px solid rgba(21, 128, 61, 0.35);
+}
+
+.rating-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.rating-stars svg {
+  color: #f59e0b;
+}
+
+.rating-count {
+  font-weight: 400;
+  color: var(--text);
+}
+
 .card-history {
   font-size: 12px;
   color: var(--text);
@@ -733,29 +774,26 @@
   border-color: var(--accent-border);
 }
 
-/* Kategoriler — ana kategori sekmeleri + alt kategori çipleri */
+/* Kategoriler — başlığın altında kalıcı yatay bar: ana kategori sekmeleri,
+   tıklanınca altında o kategorinin alt dalları açılır */
 
-.category-browser {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.category-nav {
+  padding: 6px 0 10px;
 }
 
 .category-tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  padding-bottom: 4px;
-  border-bottom: 1px solid var(--border);
+  gap: 2px;
 }
 
 .category-tab {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
+  padding: 7px 12px;
   border: none;
-  border-radius: 10px 10px 0 0;
+  border-radius: 8px;
   background: none;
   color: var(--text);
   font-size: 13px;
@@ -784,16 +822,19 @@
 .category-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
 }
 
 .category-chip {
-  padding: 10px 18px;
+  padding: 8px 16px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text-h);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition:

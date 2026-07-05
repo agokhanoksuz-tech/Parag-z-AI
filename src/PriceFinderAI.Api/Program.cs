@@ -252,7 +252,9 @@ api.MapGet("/search", async (
             ProductConditionCatalog.IsRefurbished(x.ProductName),
             x.ImageUrl,
             x.StoreIconUrl,
-            x.ImmersiveProductToken))
+            x.ImmersiveProductToken,
+            x.Rating,
+            x.ReviewCount))
         .ToList();
 
     // Sıralama parametresinden bağımsız hesaplanır — "en ucuz" sort=desc'te

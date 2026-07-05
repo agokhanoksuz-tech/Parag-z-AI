@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using PriceFinderAI.Application.Interfaces;
 using PriceFinderAI.Core.Models;
@@ -62,6 +63,7 @@ public sealed class WebSearchPriceProvider : IPriceProvider
             var imageUrl = GetFirstAvailableString(item, "thumbnail");
             var storeIconUrl = GetFirstAvailableString(item, "source_icon");
             var immersiveToken = GetFirstAvailableString(item, "immersive_product_page_token");
+            var (rating, reviewCount) = ParseRating(item);
 
             priceResults.Add(new PriceResult(
                 source,
@@ -72,7 +74,9 @@ public sealed class WebSearchPriceProvider : IPriceProvider
                 link,
                 string.IsNullOrWhiteSpace(imageUrl) ? null : imageUrl,
                 string.IsNullOrWhiteSpace(storeIconUrl) ? null : storeIconUrl,
-                string.IsNullOrWhiteSpace(immersiveToken) ? null : immersiveToken));
+                string.IsNullOrWhiteSpace(immersiveToken) ? null : immersiveToken,
+                rating,
+                reviewCount));
         }
 
         return priceResults
@@ -102,6 +106,31 @@ public sealed class WebSearchPriceProvider : IPriceProvider
         }
 
         return "";
+    }
+
+    /// <summary>
+    /// SerpApi'nin rating/reviews alanları bazen anlamsız değerler taşıyor (örn.
+    /// 21 milyar yorum) — bu yüzden mantıklı bir aralığa uymayan değerler
+    /// sessizce null'a düşürülür; yorum sayısı yoksa/saçmaysa puan da gösterilmez.
+    /// </summary>
+    private static (double? Rating, int? ReviewCount) ParseRating(JsonElement item)
+    {
+        var ratingText = GetFirstAvailableString(item, "rating");
+        var reviewsText = GetFirstAvailableString(item, "reviews");
+
+        double? rating = double.TryParse(ratingText, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsedRating)
+            && parsedRating is >= 0 and <= 5
+            ? parsedRating
+            : null;
+
+        int? reviewCount = long.TryParse(reviewsText, out var parsedReviews) && parsedReviews is >= 0 and <= 500_000
+            ? (int)parsedReviews
+            : null;
+
+        if (reviewCount is null)
+            rating = null;
+
+        return (rating, reviewCount);
     }
 
     private static decimal ParsePrice(string text)

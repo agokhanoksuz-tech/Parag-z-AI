@@ -10,7 +10,9 @@ public sealed record SearchResultDto(
     bool IsRefurbished,
     string? ImageUrl,
     string? StoreIconUrl,
-    string? ImmersiveProductToken);
+    string? ImmersiveProductToken,
+    double? Rating,
+    int? ReviewCount);
 
 public sealed record SearchResponse(
     string SearchedProduct,

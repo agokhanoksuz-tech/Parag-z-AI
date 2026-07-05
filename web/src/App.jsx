@@ -31,6 +31,30 @@ function CheapestBadge() {
   return <span className="badge badge-cheapest">En Ucuz</span>;
 }
 
+function LowestPriceBadge() {
+  return <span className="badge badge-lowest">30 Günün En Düşüğü</span>;
+}
+
+function StarIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 2l2.9 6.6 7.1.6-5.4 4.8 1.6 7-6.2-3.9-6.2 3.9 1.6-7-5.4-4.8 7.1-.6z" />
+    </svg>
+  );
+}
+
+function RatingStars({ rating, reviewCount }) {
+  if (rating == null) return null;
+
+  return (
+    <span className="rating-stars">
+      <StarIcon />
+      {rating.toFixed(1)}
+      <span className="rating-count">({reviewCount.toLocaleString("tr-TR")})</span>
+    </span>
+  );
+}
+
 function BellIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -130,11 +154,15 @@ function ResultCard({ item, highlight, isFavorited, onToggleFavorite, searchedPr
         <div className="card-body">
           <StoreLine item={item} />
           <p className="card-title">{item.product}</p>
+          <RatingStars rating={item.rating} reviewCount={item.reviewCount} />
 
           <div className="badge-row">
             <CheapestBadge />
             <TrustBadge score={item.trustScore} />
             {item.isRefurbished && <RefurbishedBadge />}
+            {item.last30DaysLowestPrice != null && item.price <= item.last30DaysLowestPrice && (
+              <LowestPriceBadge />
+            )}
           </div>
 
           {item.last30DaysLowestPrice != null && (
@@ -160,10 +188,14 @@ function ResultCard({ item, highlight, isFavorited, onToggleFavorite, searchedPr
       <div className="row-main">
         <StoreLine item={item} />
         <p className="card-title">{item.product}</p>
+        <RatingStars rating={item.rating} reviewCount={item.reviewCount} />
 
         <div className="badge-row">
           <TrustBadge score={item.trustScore} />
           {item.isRefurbished && <RefurbishedBadge />}
+          {item.last30DaysLowestPrice != null && item.price <= item.last30DaysLowestPrice && (
+            <LowestPriceBadge />
+          )}
         </div>
       </div>
 
@@ -428,37 +460,44 @@ export default function App() {
   const otherResults = data?.results?.filter((item) => item.url !== data.cheapest?.url) ?? [];
 
   return (
-    <div className="app">
-      <header className="site-header">
-        <button type="button" className="brand" onClick={handleGoHome}>
-          Parag
-          <Logo />z AI
-        </button>
+    <>
+      <div className="site-header-group">
+        <div className="site-header-inner">
+          <header className="site-header">
+            <button type="button" className="brand" onClick={handleGoHome}>
+              Parag
+              <Logo />z AI
+            </button>
 
-        <nav className="header-nav">
-          {user ? (
-            <>
-              <button type="button" className="nav-link" onClick={() => setShowFavorites(true)}>
-                Favorilerim{favorites.length > 0 ? ` (${favorites.length})` : ""}
-              </button>
-              <span className="nav-user">{user.email}</span>
-              <button type="button" className="btn-secondary" onClick={handleLogout}>
-                Çıkış yap
-              </button>
-            </>
-          ) : (
-            <>
-              <button type="button" className="btn-secondary" onClick={() => setAuthPanel("login")}>
-                Giriş yap
-              </button>
-              <button type="button" className="btn-primary" onClick={() => setAuthPanel("register")}>
-                Kayıt ol
-              </button>
-            </>
-          )}
-        </nav>
-      </header>
+            <nav className="header-nav">
+              {user ? (
+                <>
+                  <button type="button" className="nav-link" onClick={() => setShowFavorites(true)}>
+                    Favorilerim{favorites.length > 0 ? ` (${favorites.length})` : ""}
+                  </button>
+                  <span className="nav-user">{user.email}</span>
+                  <button type="button" className="btn-secondary" onClick={handleLogout}>
+                    Çıkış yap
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button type="button" className="btn-secondary" onClick={() => setAuthPanel("login")}>
+                    Giriş yap
+                  </button>
+                  <button type="button" className="btn-primary" onClick={() => setAuthPanel("register")}>
+                    Kayıt ol
+                  </button>
+                </>
+              )}
+            </nav>
+          </header>
 
+          <CategoryChips onSelect={handleSuggestionClick} />
+        </div>
+      </div>
+
+      <div className="app">
       {authPanel && (
         <div className="auth-overlay" onClick={() => setAuthPanel(null)}>
           <div className="auth-panel" onClick={(e) => e.stopPropagation()}>
@@ -537,11 +576,6 @@ export default function App() {
 
           {!hasSearched && !loading && !error && (
             <>
-              <section>
-                <h2 className="section-title">Kategoriler</h2>
-                <CategoryChips onSelect={handleSuggestionClick} />
-              </section>
-
               {user && recentlyViewed.length > 0 && (
                 <TrendingGrid
                   items={recentlyViewed}
@@ -611,6 +645,7 @@ export default function App() {
       )}
 
       <Footer />
-    </div>
+      </div>
+    </>
   );
 }

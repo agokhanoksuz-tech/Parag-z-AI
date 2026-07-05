@@ -9,7 +9,9 @@ public sealed record PriceResult(
     string ProductUrl,
     string? ImageUrl = null,
     string? StoreIconUrl = null,
-    string? ImmersiveProductToken = null
+    string? ImmersiveProductToken = null,
+    double? Rating = null,
+    int? ReviewCount = null
 )
 {
     public decimal TotalPrice => Price + ShippingPrice;
